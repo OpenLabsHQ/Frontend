@@ -19,20 +19,6 @@
 
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
-
-    .container {
-        display: flex;
-        height: 100vh;
-        font-family: 'Roboto', sans-serif;
-    }
-
-    .sidebar {
-        background-color: blue;
-        width: 200px;
-        color: white;
-        /* padding: 0rem; */
-    }
-
     .content {
         flex: 1;
         display: flex;
@@ -59,121 +45,34 @@
     p {
         font-weight: 400;
     }
-    .top-bar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        width: 100%;
-        padding: 1rem;
-        background-color: #f5f5f5;
-        border-bottom: 1px solid #ccc;
-        height: 60px;
-    }
-
-    .search-bar {
-        padding: 0.5rem;
-        font-size: 1rem;
-        width: 200px;
-    }
-
-    .create-button {
-        padding: 0.5rem 1rem;
-        font-size: 1rem;
-        background-color: blue;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-    }
-
-    .create-button:hover {
-        background-color: darkblue;
-    }
-
-    .sidebar-button {
-        padding: 1rem;
-        width: 100%;
-        border: none;
-        background-color: blue;
-        color: white;
-        cursor: pointer;
-    }
-
-    .start-stop-button{
-        padding: 0.5rem 1rem;
-        font-size: 1rem;
-        background-color: purple;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-    }
-
-    .manage-button {
-        padding: 0.5rem 1rem;
-        font-size: 1rem;
-        background-color: purple;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-    }
-
-    .user-card {
-        display: flex;
-        align-items: center;
-        padding: 1rem;
-        /* border-top: 1px solid #ccc; */
-        position: absolute;
-        bottom: 0;
-        width: 100%;
-    }
-
-    .user-card img {
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        margin-right: 1rem;
-    }
-
-    .openlabs-logo img {
-        width: 130px;
-        margin: 0 auto;
-        padding-top: 1.2rem;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-
-
-
+    
 
 </style>
 
-<div class="container">
-    <div class="sidebar">
-        <div class="openlabs-logo">
-            <img src="https://avatars.githubusercontent.com/u/196604745?s=200&v=4" alt="OpenLabs Logo" />
+<div class="flex h-screen font-roboto">
+    <div class="bg-blue-500 w-52 text-white">
+        <div class="flex flex-col items-center pt-5">
+            <img class="w-32 mx-auto" src="https://avatars.githubusercontent.com/u/196604745?s=200&v=4" alt="OpenLabs Logo" />
         </div>
-        <button class="sidebar-button">Deployed Ranges</button>
-        <button class="sidebar-button">Range Templates</button>
-        <div class="user-card">
-            <img src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png" alt="User Avatar" />
+        <button class="w-full p-4 bg-blue-500 text-white cursor-pointer">Deployed Ranges</button>
+        <button class="w-full p-4 bg-blue-500 text-white cursor-pointer">Range Templates</button>
+        <div class="flex items-center p-4 absolute bottom-0 w-full">
+            <img class="w-12 h-12 rounded-full mr-4" src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png" alt="User Avatar" />
             <p>John Doe</p>
         </div>
     </div>
     <div class="content">
-        <div class="top-bar">
-            <input type="text" placeholder="Search..." class="search-bar" bind:value={searchTerm} />
-            <button class="create-button">Create range</button>
+        <div class="flex justify-between items-center w-full p-4 bg-gray-100 border-b border-gray-300 h-15">
+            <input type="text" placeholder="Search..." class="p-2 text-base w-52 border border-gray-300 rounded" bind:value={searchTerm} />
+            <button class="px-4 py-2 text-base bg-blue-500 text-white rounded cursor-pointer hover:bg-blue-700">Create range</button>
         </div>
         {#each deployedRanges.filter(post => post.name.toLowerCase().includes(searchTerm.toLowerCase()) || post.description.toLowerCase().includes(searchTerm.toLowerCase())) as post}
             <div class="card">
                 <h2>{post.name}</h2>
                 <p>{post.description}</p>
                 <div class="card-buttons">
-                    <button class="start-stop-button">{post.isRunning ? 'Stop' : 'Start'}</button>
-                    <button class="manage-button">Manage</button>
+                    <button class="px-4 py-2 text-base bg-purple-500 text-white rounded cursor-pointer">{post.isRunning ? 'Stop' : 'Start'}</button>
+                    <button class="px-4 py-2 text-base bg-purple-500 text-white rounded cursor-pointer">Manage</button>
                 </div>
             </div>
         {/each}
