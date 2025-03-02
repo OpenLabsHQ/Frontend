@@ -1,77 +1,59 @@
-<script lang="ts">
-    interface Range {
-        name: string;
-        description: string;
-        isRunning: boolean;
-    }
+<script>
+//   import { onMount } from "svelte";
 
-    // This will eventually be fetched from deployed ranges list on page load
-    const deployedRanges: Range[] = [
-        { name: "NCAE Practice v1.0", description: "Sample Linux Environment modeled after NCAE", isRunning: true },
-        { name: "NCCDC Lab", description: "Lab with 10 Windows, 10 Linux, Kubernetes, and more!", isRunning: false },
-        { name: "GOAD", description: "Game of active directory", isRunning: true },
-        { name: "C2 Practice", description: "Lab with Sliver, Havoc, Cobalt Strike, Metasploit, and Epire installed.", isRunning: false },
-        { name: "Linux basics", description: "40 Linux machines with randomized misconfigurations.", isRunning: true}
-    ]
+//   let userLoggedIn = false; // Replace this with actual authentication logic
 
-    let searchTerm = '';
+//   onMount(() => {
+//     // Fetch user session if needed
+//   });
+
+//   function handleGetStarted() {
+//     window.location.href = userLoggedIn ? "/ranges" : "/auth/signup";
+//   }
 </script>
 
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
-    
+
+a {
+    font-family: Inter,ui-sans-serif,system-ui,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji;
+}
+
 </style>
 
-
-<svelte:head>
-    <title>OpenLabs | Deployed Ranges</title>
-</svelte:head>
-
-<div class="flex h-screen font-roboto ">
-    <div class="bg-gray-800 w-52 text-white flex flex-col items-center space-y-4 relative">
-        <h2 class="flex flex-col items-center pt-5 font-bold text-xl">OpenLabs</h2>
-        <div class="flex flex-col items-center pt-0">
-            <img class="w-32 mx-auto" src="https://avatars.githubusercontent.com/u/196604745?s=200&v=4" alt="OpenLabs Logo" />
-        </div>
-        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full w-7/8">Deployed Ranges</button>
-        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full w-7/8">Range Templates</button>
-        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full w-7/8">Documentation</button>
-        <div class="flex items-center p-4 absolute bottom-0 w-full flex-col items-center">
-            <img class="w-12 h-12 rounded-full mb-2" src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png" alt="User Avatar" />
-            <p>John Doe</p>
-        </div>
+<header class="sticky top-0 z-50 border-b border-gray-800/75 bg-gray-900 text-sm font-medium text-white">
+    <div class="mx-auto flex h-16 max-w-screen-xl items-center justify-between px-4 sm:px-6 lg:px-8">
+       <nav class="hidden md:flex md:items-center md:gap-4 lg:gap-8">
+          <a href="/" class="font-bold">OpenLabs</a>
+          <a href="/docs" class="font-bold" aria-current="page">Documentation</a>
+       </nav>
+       <div class="hidden md:flex md:items-center md:gap-4 lg:gap-8">
+          <a href="/signup" class="">Sign Up</a>
+          <a href="/login" class="">Login</a>
+          <a href="https://github.com/OpenLabsX/Setup" target="_blank" rel="noreferrer">
+             <span class="sr-only">GitHub</span>
+             <svg fill="currentColor" viewBox="0 0 24 24" aria-hidden="true" class="h-5 w-5">
+                <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"></path>
+             </svg>
+          </a>
+       </div>
     </div>
-    <div class="flex flex-wrap p-4 flex-1 content-start">
-        <div class="flex justify-between items-center w-full p-4 bg-gray-100 border-b border-gray-300 h-15">
-            <input type="text" placeholder="Search..." class="p-2 text-base w-52 border border-gray-300 rounded" bind:value={searchTerm} />
-            <button class="px-4 py-2 text-base bg-blue-500 text-white rounded cursor-pointer hover:bg-blue-700">Create range</button>
-        </div>
-        {#each deployedRanges.filter(post => post.name.toLowerCase().includes(searchTerm.toLowerCase()) || post.description.toLowerCase().includes(searchTerm.toLowerCase())) as post}
-            <div class="bg-white border border-gray-300 rounded-lg shadow-sm m-4 p-4 w-72 h-48 flex flex-col">
-                <h2 class="font-bold text-xl mb-2">{post.name}</h2>
-                <p class="text-gray-700 text-base">{post.description}</p>
-                <div class="mt-auto justify-between flex">
-                    <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full">
-                        {#if post.isRunning}
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M6 4a1 1 0 011 1v10a1 1 0 01-2 0V5a1 1 0 011-1zm7 0a1 1 0 011 1v10a1 1 0 01-2 0V5a1 1 0 011-1z" clip-rule="evenodd" />
-                            </svg>
-                            <span class="ml-2 font-bold">Stop</span>
-                        {:else}
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M10 5a1 1 0 00-1 1v8a1 1 0 001.555.832l5-4a1 1 0 000-1.664l-5-4A1 1 0 0010 5z" clip-rule="evenodd" />
-                            </svg>
-                            Start
-                        {/if}
-                    </button>
-                    <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full">
-                        Manage
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline ml-2" viewBox="0 0 20 20" fill="currentColor">
-                            <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828zM4 12v4h4l10-10-4-4L4 12z" />
-                        </svg>
-                    </button>
-                </div>
-            </div>
-        {/each}
+ </header>
+
+<div class="h-screen w-screen flex pt-10 justify-center bg-gray-900">
+    <div class="text-center mx-auto max-w-screen-xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8 lg:py-32">
+        <h1 class="mt-1 bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 bg-clip-text text-4xl font-extrabold uppercase tracking-tighter text-transparent sm:text-5xl lg:text-7xl">OpenLabs</h1>
+        <p class="font-bold mx-auto mt-8 max-w-2xl text-xl text-white">
+            Open source platform to design and create cyber security labs.
+        </p>
+    </div>  
+
+    <div>
+        
     </div>
+
+    <footer class="absolute bottom-0 w-full text-center py-4 bg-gray-900 text-white">
+        <p>&copy; {new Date().getFullYear()} OpenLabs. All rights reserved.</p>
+    </footer>
+    <!-- <h1 class="text-white text-3xl font-bold">Welcome to OpenLabs</h1> -->
 </div>
+

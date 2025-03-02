@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Network Diagram with Vis.js</title>
+  <style>
+    #graph { height: 600px; border: 1px solid lightgray; }
+  </style>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vis-network@9.0.0/dist/vis-network.min.js"></script>
+</head>
+<body>
+  <div id="graph"></div>
+
+  <script>
+    const nodes = new vis.DataSet([
+      { id: 1, label: '<b>Internet</b>', shape: 'image', image: 'images/cloud.svg', font: { multi: true }, size: 40  },
+      { id: 2, label: '<b>OpenLabsX</b>\n10.10.0.0/16', shape: 'image', image: 'images/house.svg', font: { multi: true }, size: 40  },
+
+      { id: 3, label: '<b>10.10.0.0/24</b>', shape: 'image', image: 'images/subnet.svg', font: { multi: true }, size: 40  },
+      { id: 4, label: '<b>Admin</b>\n10.10.255.240/28', shape: 'image', image: 'images/subnet.svg', font: { multi: true }, size: 40 },
+
+      { id: 5, label: '<b>Database</b>', shape: 'image', image: 'images/system.svg' , font: { multi: true }},
+      { id: 6, label: '<b>Web</b>', shape: 'image', image: 'images/system.svg' , font: { multi: true }},
+      { id: 7, label: '<b>Backup</b>', shape: 'image', image: 'images/system.svg' , font: { multi: true }},
+      { id: 8, label: '<b>Fileshare</b>', shape: 'image', image: 'images/system.svg' , font: { multi: true }},
+      { id: 9, label: '<b>Kali</b>', shape: 'image', image: 'images/system.svg' , font: { multi: true }},
+      { id:10, label: '<b>AdminBox</b>', shape: 'image', image: 'images/system.svg', font: { multi: true }},
+
+      {id: 11, label: '<b>VPN-ed Attackers</b>', shape: 'image', image: 'images/vpn.svg', font: { multi: true }}
+
+      // { id: 5, label: '<b></b>', shape: 'image', image: 'images/vpn.svg' },
+      // { id: 6, label: '<b></b>', shape: 'image', image: 'images/house.svg' },
+    ]);
+
+    const edges = new vis.DataSet([
+      // Internet to home
+      { from: 1, to: 2, dashes: true}, 
+      // home (vpc) to subnets
+      { from: 2, to: 3, dashes: true},
+      { from: 2, to: 4, dashes: true },
+
+      // comp subnet to hosts
+      { from: 3, to: 5, dashes: true },
+      { from: 3, to: 6, dashes: true },
+      { from: 3, to: 7, dashes: true },
+      { from: 3, to: 8, dashes: true },
+      { from: 3, to: 9, dashes: true },
+      { from: 3, to: 10, dashes: true},
+
+      // admin subnet to adminbox
+      { from: 4, to: 10, dashes: true},
+      { from: 10, to: 11, dashes: true},
+    ]);
+
+    const container = document.getElementById('graph');
+    const data = { nodes, edges };
+
+    const options = {
+      physics: {
+        enabled: true,
+        solver: 'hierarchicalRepulsion',
+        hierarchicalRepulsion: {
+          centralGravity: 0.0,  // Optional: control the central pull of nodes
+          springLength: 120,  // Optional: controls the length of the edges
+          nodeDistance: 120,  // Increase the distance between nodes
+        },
+        stabilization: {
+          enabled: !0,
+          iterations: 200, // Increase iterations for longer stabilization time
+          updateInterval: 20, // Update interval for each iteration
+        },
+      },
+      nodes: {
+        size: 30,
+        font: { size: 16 }
+      },
+      edges: {
+        width: 2,
+        color: { color: 'gray' },
+        smooth: { type: 'continuous' }
+      },
+    };
+
+    const network = new vis.Network(container, data, options);
+
+    // Event listener for node click
+    network.on('click', function (event) {
+      const { nodes: clickedNodes } = event;
+      if (clickedNodes.length > 0) {
+        const nodeId = clickedNodes[0];
+        alert(`Node ${nodeId} clicked! You can make an API call here.`);
+      }
+    });
+  </script>
+</body>
+</html>
