@@ -3,6 +3,8 @@
   import { goto } from '$app/navigation';
   import { page } from '$app/stores';
   import { auth } from '$lib/stores/auth';
+  
+  // Import Tailwind CSS
   import '../tailwind.css';
 
   // Global auth state management

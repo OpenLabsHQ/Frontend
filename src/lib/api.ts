@@ -1,4 +1,7 @@
-const API_URL = ''; // Empty string means same domain. avoids CORS
+import { config } from '$lib/config';
+
+// Get the API URL from our config
+const API_URL = config.apiUrl;
 
 interface LoginCredentials {
   email: string;
@@ -29,9 +32,10 @@ async function apiRequest<T>(
   requiresAuth: boolean = true // Default to requiring auth for all requests
 ): Promise<ApiResponse<T>> {
   try {
+    // These headers will trigger a preflight request, but that's okay
+    // since we'll configure the API server to handle CORS
     const headers: HeadersInit = {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
+      'Content-Type': 'application/json'
     };
 
     // Add auth token if required
@@ -48,6 +52,8 @@ async function apiRequest<T>(
     const options: RequestInit = {
       method,
       headers,
+      // Always include credentials
+      credentials: 'same-origin'
     };
 
     if (data && (method === 'POST' || method === 'PUT')) {
@@ -137,10 +143,11 @@ export const authApi = {
       const response = await fetch(`${API_URL}/api/v1/auth/login`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify(loginData)
+        body: JSON.stringify(loginData),
+        // Always use same-origin credentials
+        credentials: 'same-origin'
       });
 
       if (!response.ok) {
@@ -172,14 +179,15 @@ export const authApi = {
       const response = await fetch(`${API_URL}/api/v1/auth/register`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           email: userData.email,
           password: userData.password,
           name: userData.name
-        })
+        }),
+        // Always use same-origin credentials
+        credentials: 'same-origin'
       });
 
       if (!response.ok) {

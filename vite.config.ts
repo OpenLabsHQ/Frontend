@@ -5,7 +5,10 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig({
 	plugins: [
 	    sveltekit(),
-	    tailwindcss(),
+	    tailwindcss({
+			// Explicitly set the config path, this is optional but recommended for clarity
+			configPath: './tailwind.config.js',
+		}),
 	],
 	// Add development server proxy to avoid CORS issues
 	server: {
@@ -17,5 +20,10 @@ export default defineConfig({
 				secure: false
 			}
 		}
+	},
+	// Add CSS handling options
+	css: {
+		// This ensures Tailwind is processed correctly
+		postcss: true
 	}
 });
