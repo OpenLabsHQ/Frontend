@@ -143,14 +143,92 @@
             rawSubnets = templateData.subnet;
         }
         
+        // Create special Admin subnet with Jumpbox (implicit for every VPC)
+        // CIDR is based on VPC CIDR with 3rd octet changed to 99
+        let adminSubnetCidr = '';
+        if (vpcCidr) {
+            const vpcParts = vpcCidr.split('.');
+            if (vpcParts.length >= 4) {
+                // Replace the 3rd octet with 99
+                vpcParts[2] = '99';
+                // Use first 3 octets and make it a /24
+                adminSubnetCidr = `${vpcParts[0]}.${vpcParts[1]}.${vpcParts[2]}.0/24`;
+            }
+        }
+        
+        // If we couldn't derive the admin subnet CIDR, use a default
+        if (!adminSubnetCidr) {
+            adminSubnetCidr = '10.0.99.0/24';
+        }
+        
+        // Add Admin subnet node
+        const adminSubnetId = 'admin_subnet';
+        nodes.add({
+            id: adminSubnetId,
+            label: `<b>Admin</b>\n${adminSubnetCidr}`,
+            shape: 'image',
+            image: '/images/subnet.svg',
+            font: { multi: true },
+            size: 40
+        });
+        
+        // Connect VPC to Admin subnet
+        edges.add({
+            id: 'edge_vpc_admin',
+            from: vpcId,
+            to: adminSubnetId,
+            dashes: true
+        });
+        
+        // Add Jumpbox host in Admin subnet
+        const jumpboxId = 'jumpbox';
+        nodes.add({
+            id: jumpboxId,
+            label: '<b>JumpBox</b>',
+            shape: 'image',
+            image: '/images/system.svg',
+            font: { multi: true },
+            size: 30
+        });
+        
+        // Connect Admin subnet to Jumpbox
+        edges.add({
+            id: 'edge_admin_jumpbox',
+            from: adminSubnetId,
+            to: jumpboxId,
+            dashes: true
+        });
+        
+        // Add VPN-ed Attackers node (connected only to Admin subnet)
+        nodes.add({
+            id: 'vpn_attackers',
+            label: '<b>VPN-ed Attackers</b>',
+            shape: 'image',
+            image: '/images/vpn.svg',
+            font: { multi: true },
+            size: 30
+        });
+        
+        // Connect VPN-ed Attackers to Admin subnet
+        edges.add({
+            id: 'edge_vpn_admin',
+            from: 'vpn_attackers',
+            to: adminSubnetId,
+            dashes: true
+        });
+        
+        // If there are no user-defined subnets, just return with admin subnet
         if (!rawSubnets || !rawSubnets.length) {
-            console.warn('No subnets found in template data');
+            console.warn('No user-defined subnets found in template data');
             return { nodes, edges };
         }
         
-        console.log(`Processing ${rawSubnets.length} subnets:`, rawSubnets);
+        console.log(`Processing ${rawSubnets.length} user-defined subnets:`, rawSubnets);
         
-        // Process each subnet
+        // Track subnet IDs to connect Jumpbox to all subnets
+        const userSubnetIds = [];
+        
+        // Process each user-defined subnet
         rawSubnets.forEach((subnet, index) => {
             if (!subnet) {
                 console.warn(`Subnet at index ${index} is null or undefined`);
@@ -172,6 +250,9 @@
                 font: { multi: true },
                 size: 40
             });
+            
+            // Store subnet ID to connect Jumpbox later
+            userSubnetIds.push(subnetId);
             
             // Connect VPC to subnet
             edges.add({
@@ -250,28 +331,18 @@
             });
         });
         
-        // Add VPN if enabled (could be a boolean or an object)
-        if (templateData.vpn === true || (templateData.vpn && typeof templateData.vpn === 'object')) {
-            console.log('VPN is enabled, adding VPN node');
-            
-            // Add VPN node
-            nodes.add({
-                id: 'vpn',
-                label: '<b>VPN Access</b>',
-                shape: 'image',
-                image: '/images/vpn.svg',
-                font: { multi: true },
-                size: 30
-            });
-            
-            // Connect VPN to VPC
+        // Connect Jumpbox to all user-defined subnets
+        userSubnetIds.forEach((subnetId, index) => {
             edges.add({
-                id: 'edge_vpn_vpc',
-                from: 'vpn',
-                to: vpcId,
+                id: `edge_jumpbox_${subnetId}`,
+                from: jumpboxId,
+                to: subnetId,
                 dashes: true
             });
-        }
+        });
+        
+        // Note: We no longer add a separate VPN node based on the templateData.vpn property,
+        // as we now have the hard-coded VPN-ed Attackers node connected to the Admin subnet
         
         // Network visualization options
         const options = {
