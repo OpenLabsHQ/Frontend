@@ -1,4 +1,6 @@
 <script lang="ts">
+    import { rangesApi } from '$lib/api';
+    
     interface Template {
         id: string;
         provider: string;
@@ -12,6 +14,11 @@
     export let templates: Template[] = [];
     export let isLoading: boolean = false;
     export let error: string = '';
+    
+    // Track deployment status
+    let deployingTemplateId: string | null = null;
+    let deploymentError: string = '';
+    let deploymentSuccess: string = '';
 
     // Provider icons/colors
     const providerIcons = {
@@ -29,6 +36,38 @@
     function getProviderInfo(provider: string) {
         const normalizedProvider = provider?.toLowerCase() || 'default';
         return providerIcons[normalizedProvider] || providerIcons.default;
+    }
+    
+    // Deploy a template
+    async function deployTemplate(templateId: string, templateName: string) {
+        // Reset messages
+        deploymentError = '';
+        deploymentSuccess = '';
+        
+        // Set the template as deploying
+        deployingTemplateId = templateId;
+        
+        try {
+            const result = await rangesApi.deployTemplate(templateId);
+            
+            if (result.error) {
+                deploymentError = result.error;
+            } else {
+                deploymentSuccess = `Successfully deployed "${templateName}"! You can view it in the Deployed Ranges section.`;
+                
+                // Clear success message after 5 seconds
+                setTimeout(() => {
+                    if (deploymentSuccess) {
+                        deploymentSuccess = '';
+                    }
+                }, 5000);
+            }
+        } catch (err) {
+            deploymentError = 'An unexpected error occurred while deploying the template';
+            console.error('Template deployment error:', err);
+        } finally {
+            deployingTemplateId = null;
+        }
     }
 </script>
 
@@ -48,6 +87,25 @@
     </div>
     
     <div class="pl-0 flex flex-wrap p-4 flex-1 content-start">
+        {#if deploymentSuccess}
+            <div class="w-full p-4 mb-4">
+                <div class="bg-green-50 border-l-4 border-green-500 text-green-700 p-4 rounded shadow-md" role="alert">
+                    <p class="font-bold mb-2">✅ Deployment Successful</p>
+                    <p>{deploymentSuccess}</p>
+                </div>
+            </div>
+        {/if}
+        
+        {#if deploymentError}
+            <div class="w-full p-4 mb-4">
+                <div class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded shadow-md" role="alert">
+                    <p class="font-bold mb-2">⚠️ Deployment Failed</p>
+                    <p class="mb-3">{deploymentError}</p>
+                    <p class="text-sm">Please try again later.</p>
+                </div>
+            </div>
+        {/if}
+    
         {#if isLoading}
             <div class="w-full flex justify-center items-center p-20">
                 <svg class="animate-spin h-10 w-10 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -109,8 +167,20 @@
                         <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md text-sm">
                             View Details
                         </button>
-                        <button class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md text-sm">
-                            Deploy
+                        <button 
+                            class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md text-sm flex items-center {deployingTemplateId === template.id ? 'opacity-75 cursor-not-allowed' : ''}"
+                            on:click={() => deployTemplate(template.id, template.name)}
+                            disabled={deployingTemplateId === template.id}
+                        >
+                            {#if deployingTemplateId === template.id}
+                                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Deploying...
+                            {:else}
+                                Deploy
+                            {/if}
                         </button>
                     </div>
                 </div>

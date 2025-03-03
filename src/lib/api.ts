@@ -260,6 +260,16 @@ export const rangesApi = {
       templateData,
       true
     );
+  },
+  
+  // Deploy a range from a template
+  deployTemplate: async (templateId: string) => {
+    return await apiRequest<any>(
+      '/api/v1/ranges/deploy',
+      'POST',
+      [{ id: templateId }],
+      true
+    );
   }
 };
 
