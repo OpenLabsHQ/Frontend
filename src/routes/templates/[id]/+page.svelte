@@ -283,7 +283,7 @@
                                     
                                     <div>
                                         <h3 class="text-sm font-medium text-gray-500">Template ID</h3>
-                                        <p class="mt-1 text-sm font-mono bg-gray-100 p-1 rounded">{template.id}</p>
+                                        <p class="mt-1 text-sm font-mono"><span class="bg-gray-100 p-1 rounded">{template.id}</span></p>
                                     </div>
                                     
                                     <button 
