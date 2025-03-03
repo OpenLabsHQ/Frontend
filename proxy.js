@@ -35,9 +35,10 @@ proxy.on('error', function(err, req, res) {
   // Make sure res is defined and writable
   if (res && res.writeHead) {
     // Add CORS headers even on error responses
-    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
     
     res.writeHead(502, {
       'Content-Type': 'application/json'
@@ -52,9 +53,10 @@ proxy.on('error', function(err, req, res) {
 // Create the server to handle requests
 const server = createServer((req, res) => {
   // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
   
   // Handle OPTIONS requests
   if (req.method === 'OPTIONS') {
