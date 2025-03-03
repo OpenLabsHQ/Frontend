@@ -59,23 +59,10 @@
       if (loginResult.data) {
         console.log('Login after signup successful:', loginResult.data);
         
-        let token;
-        
-        if (typeof loginResult.data === 'object') {
-          token = loginResult.data.token;
-          
-          if (token) {
-            auth.setAuth(token);
-            
-            goto('/ranges');
-          } else {
-            console.error('No token found in login response');
-            error = 'Registration successful, but login failed: No token received';
-          }
-        } else {
-          console.error('Unexpected response format:', loginResult.data);
-          error = 'Registration and login succeeded but received unexpected data format';
-        }
+        // With HTTP-only cookies, we don't receive the token directly
+        // Just update auth state and redirect
+        auth.setAuth();
+        goto('/ranges');
       }
     } catch (err) {
       error = err instanceof Error ? err.message : 'Registration failed';

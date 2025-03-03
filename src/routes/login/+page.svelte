@@ -38,18 +38,9 @@
       if (result.data) {
         console.log('Login successful:', result.data);
         
-        let token;
-        let userData;
-        
-        if (typeof result.data === 'object') {
-          // No need to handle token, it's set as HTTP-only cookie by the server
-          auth.setAuth();
-          
-          goto('/ranges');
-        } else {
-          console.error('Unexpected response format:', result.data);
-          error = 'Login succeeded but received unexpected data format';
-        }
+        // No need to handle token, it's set as HTTP-only cookie by the server
+        auth.setAuth();
+        goto('/ranges');
       }
     } catch (err) {
       error = err instanceof Error ? err.message : 'Login failed';
