@@ -179,7 +179,7 @@
             dashes: true
         });
         
-        // Add VPN-ed Attackers node (connected only to Admin subnet)
+        // Add VPN-ed Attackers node (connected only to JumpBox)
         nodes.add({
             id: 'vpn_attackers',
             label: '<b>VPN-ed Attackers</b>',
@@ -189,11 +189,11 @@
             size: 30
         });
         
-        // Connect VPN-ed Attackers to Admin subnet
+        // Connect VPN-ed Attackers to Jumpbox
         edges.add({
             id: 'edge_vpn_admin',
             from: 'vpn_attackers',
-            to: adminSubnetId,
+            to: jumpboxId,
             dashes: true
         });
         
