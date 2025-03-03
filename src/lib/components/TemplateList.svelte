@@ -235,9 +235,9 @@
                     
                     <!-- Action buttons -->
                     <div class="mt-auto flex justify-between">
-                        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md text-sm">
+                        <a href={`/templates/${template.id}`} class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md text-sm text-center">
                             View Details
-                        </button>
+                        </a>
                         <button 
                             class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md text-sm flex items-center {deployingTemplateId === template.id ? 'opacity-75 cursor-not-allowed' : ''}"
                             on:click={() => deployTemplate(template.id, template.name)}
