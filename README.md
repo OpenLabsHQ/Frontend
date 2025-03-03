@@ -21,11 +21,6 @@ curl -fsSL https://bun.sh/install | bash
 # Install dependencies
 bun install
 
-# Install required packages
-bun add -D svelte-adapter-bun
-bun add -d @tailwindcss/postcss
-bun add -d autoprefixer
-
 # Start development server
 bun run dev
 
