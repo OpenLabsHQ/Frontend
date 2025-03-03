@@ -19,12 +19,6 @@ interface ApiResponse<T> {
   error?: string;
 }
 
-// Get stored auth token if available (matching the key in stores/auth.ts)
-const TOKEN_KEY = 'token';
-const getToken = (): string | null => {
-  return typeof localStorage !== 'undefined' ? localStorage.getItem(TOKEN_KEY) : null;
-};
-
 async function apiRequest<T>(
   endpoint: string, 
   method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET',
@@ -38,22 +32,11 @@ async function apiRequest<T>(
       'Content-Type': 'application/json'
     };
 
-    // Add auth token if required
-    if (requiresAuth) {
-      const token = getToken();
-      if (!token) {
-        return { error: 'Authentication required' };
-      }
-
-      headers['Authorization'] = `Bearer ${token}`;
-      
-    }
-
     const options: RequestInit = {
       method,
       headers,
-      // Always include credentials
-      credentials: 'same-origin'
+      // Include credentials to send cookies with cross-origin requests
+      credentials: 'include'
     };
 
     if (data && (method === 'POST' || method === 'PUT')) {
@@ -146,8 +129,8 @@ export const authApi = {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(loginData),
-        // Always use same-origin credentials
-        credentials: 'same-origin'
+        // Use include to allow cookie setting in cross-origin requests
+        credentials: 'include'
       });
 
       if (!response.ok) {
@@ -186,8 +169,8 @@ export const authApi = {
           password: userData.password,
           name: userData.name
         }),
-        // Always use same-origin credentials
-        credentials: 'same-origin'
+        // Use include to allow cookie setting in cross-origin requests
+        credentials: 'include'
       });
 
       if (!response.ok) {
@@ -220,6 +203,21 @@ export const authApi = {
       undefined,
       true
     );
+  },
+  
+  // Logout by making a request to the server to clear the auth cookie
+  logout: async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/v1/auth/logout`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+      
+      return { success: response.ok };
+    } catch (error) {
+      console.error('Logout error:', error);
+      return { error: error instanceof Error ? error.message : 'Logout failed' };
+    }
   }
 };
 

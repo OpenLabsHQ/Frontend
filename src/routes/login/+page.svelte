@@ -42,9 +42,8 @@
         let userData;
         
         if (typeof result.data === 'object') {
-          token = result.data.token;
-        
-          auth.setAuth(token);
+          // No need to handle token, it's set as HTTP-only cookie by the server
+          auth.setAuth();
           
           goto('/ranges');
         } else {

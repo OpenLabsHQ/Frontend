@@ -7,23 +7,21 @@
   export let onAuthFailure: () => void = () => {};
   
   onMount(async () => {
-    if ($auth.token) {
-      try {
-        const result = await authApi.getCurrentUser();
-        if (result.error || !result.data) {
-          console.error('Auth check failed:', result.error);
-          auth.logout();
-          onAuthFailure();
-        } else {
-          auth.setAuth($auth.token);
-          onAuthSuccess();
-        }
-      } catch (error) {
-        console.error('Auth check error:', error);
+    try {
+      // Always try to get the current user - the cookie will be sent automatically
+      const result = await authApi.getCurrentUser();
+      if (result.error || !result.data) {
+        console.error('Auth check failed:', result.error);
         auth.logout();
         onAuthFailure();
+      } else {
+        // Authentication successful, update auth state
+        auth.setAuth();
+        onAuthSuccess();
       }
-    } else {
+    } catch (error) {
+      console.error('Auth check error:', error);
+      auth.logout();
       onAuthFailure();
     }
   });

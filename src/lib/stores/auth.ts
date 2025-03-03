@@ -1,78 +1,54 @@
 import { writable } from 'svelte/store';
 
 /**
- * The JWT authentication token is stored in localStorage.
+ * Authentication is managed using HTTP-only cookies.
  * 
- * Why localStorage and not cookies?
- * - Works well with SPA architecture
- * - Easier to manage from JavaScript
- * - No CSRF issues since it's explicitly added to requests
+ * Security advantages over localStorage:
+ * - Not accessible to JavaScript, protecting against XSS attacks
+ * - Can be set with HttpOnly, Secure, and SameSite flags
+ * - Server controls expiration
+ * - More secure against client-side attacks
  * 
- * Security considerations:
- * - Vulnerable to XSS attacks
- * - No automatic expiration (we handle this by validating on app load)
- * - No HttpOnly flag (meaning JS can access it)
+ * How it works:
+ * - The server sets the JWT in an HTTP-only cookie upon successful login
+ * - The cookie is automatically sent with every request to the same domain
+ * - Authentication state is inferred from API responses, not by checking token presence
  */
 
 interface AuthStore {
-  token: string | null;
   isAuthenticated: boolean;
 }
 
-// Helper functions for token management
-const TOKEN_KEY = 'token';
-
-const getStoredToken = (): string | null => {
-  return typeof localStorage !== 'undefined' ? localStorage.getItem(TOKEN_KEY) : null;
-};
-
 // Create auth store with initial state
 const createAuthStore = () => {
-  const storedToken = getStoredToken();
-  
+  // Start with not authenticated - we'll verify via API calls
   const initialState: AuthStore = {
-    token: storedToken,
-    isAuthenticated: !!storedToken
+    isAuthenticated: false
   };
 
-  const { subscribe, set, update } = writable<AuthStore>(initialState);
+  const { subscribe, set } = writable<AuthStore>(initialState);
 
   return {
     subscribe,
     
-    // Set token after login/registration - no longer storing user data
-    setAuth: (token: string | undefined) => {
-      // Check if token exists
-      if (!token) {
-        console.error('Auth token is undefined or null');
-        set({
-          token: null,
-          isAuthenticated: false
-        });
-        return;
-      }
-      
-      // Store token (no need to add Bearer prefix as the API doesn't expect it)
-      const authToken = token.toString();
-      
-      // Store in localStorage - ONLY the token
-      localStorage.setItem(TOKEN_KEY, authToken);
-      
+    // Set auth state after login/registration (token is stored in HTTP-only cookie by the server)
+    setAuth: () => {
       console.log('Auth state updated: User authenticated');
       
       set({
-        token: authToken,
         isAuthenticated: true
       });
     },
     
-    // Clear auth data on logout
-    logout: () => {
-      // Clear token from localStorage
-      localStorage.removeItem(TOKEN_KEY);
+    // Clear auth state on logout
+    logout: async () => {
+      // Import dynamically to avoid circular dependencies
+      const { authApi } = await import('$lib/api');
+      
+      // Call the logout API to clear the cookie on the server
+      await authApi.logout();
       
       set({
-        token: null,
         isAuthenticated: false
       });
     }
