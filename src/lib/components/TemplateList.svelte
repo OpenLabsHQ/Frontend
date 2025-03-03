@@ -1,5 +1,6 @@
 <script lang="ts">
     import { rangesApi } from '$lib/api';
+    import { onDestroy } from 'svelte';
     
     interface Template {
         id: string;
@@ -38,6 +39,34 @@
         return providerIcons[normalizedProvider] || providerIcons.default;
     }
     
+    // Keep track of any active timers
+    let autoCloseTimer: ReturnType<typeof setTimeout> | null = null;
+    
+    // Clear any timers when component is destroyed
+    onDestroy(() => {
+        if (autoCloseTimer) {
+            clearTimeout(autoCloseTimer);
+        }
+    });
+    
+    // Auto-dismiss notification function
+    function setAutoDismiss(type: 'success' | 'error', duration: number = 3000) {
+        // Clear any existing timers
+        if (autoCloseTimer) {
+            clearTimeout(autoCloseTimer);
+        }
+        
+        // Set a new timer
+        autoCloseTimer = setTimeout(() => {
+            if (type === 'success') {
+                deploymentSuccess = '';
+            } else {
+                deploymentError = '';
+            }
+            autoCloseTimer = null;
+        }, duration);
+    }
+    
     // Deploy a template
     async function deployTemplate(templateId: string, templateName: string) {
         // Reset messages
@@ -52,19 +81,15 @@
             
             if (result.error) {
                 deploymentError = result.error;
+                setAutoDismiss('error', 5000); // Error messages stay longer
             } else {
                 deploymentSuccess = `Successfully deployed "${templateName}"! You can view it in the Deployed Ranges section.`;
-                
-                // Clear success message after 5 seconds
-                setTimeout(() => {
-                    if (deploymentSuccess) {
-                        deploymentSuccess = '';
-                    }
-                }, 5000);
+                setAutoDismiss('success', 3000);
             }
         } catch (err) {
             deploymentError = 'An unexpected error occurred while deploying the template';
             console.error('Template deployment error:', err);
+            setAutoDismiss('error', 5000);
         } finally {
             deployingTemplateId = null;
         }
@@ -86,25 +111,71 @@
         </a>
     </div>
     
+    <!-- Floating notifications -->
+    {#if deploymentSuccess}
+        <div class="fixed top-5 right-5 z-50 max-w-md transform transition-all duration-300 ease-in-out animate-slideIn">
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden flex relative">
+                <button 
+                    class="absolute top-1 right-1 text-gray-400 hover:text-gray-600"
+                    on:click={() => deploymentSuccess = ''}
+                    aria-label="Close notification"
+                >
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+                <div class="bg-green-500 flex-shrink-0 flex items-center justify-center w-12">
+                    <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div class="p-4">
+                    <div class="flex items-start">
+                        <div class="ml-1">
+                            <h3 class="text-sm font-medium text-gray-900">Deployment Successful</h3>
+                            <div class="mt-1 text-sm text-gray-700">
+                                <p>{deploymentSuccess}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {/if}
+    
+    {#if deploymentError}
+        <div class="fixed top-5 right-5 z-50 max-w-md transform transition-all duration-300 ease-in-out animate-slideIn">
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden flex relative">
+                <button 
+                    class="absolute top-1 right-1 text-gray-400 hover:text-gray-600"
+                    on:click={() => deploymentError = ''}
+                    aria-label="Close error notification"
+                >
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+                <div class="bg-red-500 flex-shrink-0 flex items-center justify-center w-12">
+                    <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div class="p-4">
+                    <div class="flex items-start">
+                        <div class="ml-1">
+                            <h3 class="text-sm font-medium text-gray-900">Deployment Failed</h3>
+                            <div class="mt-1 text-sm text-gray-700">
+                                <p>{deploymentError}</p>
+                            </div>
+                            <p class="mt-2 text-xs text-gray-500">Please try again later.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {/if}
+    
     <div class="pl-0 flex flex-wrap p-4 flex-1 content-start">
-        {#if deploymentSuccess}
-            <div class="w-full p-4 mb-4">
-                <div class="bg-green-50 border-l-4 border-green-500 text-green-700 p-4 rounded shadow-md" role="alert">
-                    <p class="font-bold mb-2">✅ Deployment Successful</p>
-                    <p>{deploymentSuccess}</p>
-                </div>
-            </div>
-        {/if}
-        
-        {#if deploymentError}
-            <div class="w-full p-4 mb-4">
-                <div class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded shadow-md" role="alert">
-                    <p class="font-bold mb-2">⚠️ Deployment Failed</p>
-                    <p class="mb-3">{deploymentError}</p>
-                    <p class="text-sm">Please try again later.</p>
-                </div>
-            </div>
-        {/if}
     
         {#if isLoading}
             <div class="w-full flex justify-center items-center p-20">
