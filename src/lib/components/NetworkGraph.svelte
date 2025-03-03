@@ -1,6 +1,7 @@
 <script>
     import { onMount } from 'svelte';
     import { browser } from '$app/environment';
+    import LoadingSpinner from './LoadingSpinner.svelte';
     
     // Props
     export let templateData;
@@ -9,6 +10,9 @@
     let network = null;
     let container;
     let error = '';
+    
+    // Loading state
+    let isLoading = true;
     
     // Initialize the network when the component mounts
     onMount(async () => {
@@ -21,6 +25,7 @@
                 if (!templateData) {
                     console.error('Template data is null or undefined');
                     error = 'No template data available';
+                    isLoading = false;
                     return;
                 }
                 
@@ -33,6 +38,7 @@
                     if (!container) {
                         console.error('Network container not found');
                         error = 'Network visualization container not available';
+                        isLoading = false;
                         return;
                     }
                     
@@ -41,11 +47,13 @@
                     } catch (err) {
                         console.error('Error building network:', err);
                         error = 'Error building network visualization';
+                        isLoading = false;
                     }
                 }, 200);
             } catch (err) {
                 console.error('Error in NetworkGraph onMount:', err);
                 error = 'Failed to initialize network visualization';
+                isLoading = false;
             }
         }
     });
@@ -309,6 +317,9 @@
         
         console.log('Network visualization initialized successfully');
         
+        // Set loading to false once the network is initialized
+        isLoading = false;
+        
         return { nodes, edges };
     }
 </script>
@@ -319,7 +330,16 @@
         <p>{error}</p>
     </div>
 {:else}
-    <div bind:this={container} class="h-[500px] border border-gray-200 rounded"></div>
+    <div bind:this={container} class="h-[500px] border border-gray-200 rounded relative">
+        {#if isLoading}
+            <LoadingSpinner 
+                size="medium" 
+                color="blue" 
+                message="Loading network diagram..." 
+                overlay={true} 
+            />
+        {/if}
+    </div>
 {/if}
 
 <style>
