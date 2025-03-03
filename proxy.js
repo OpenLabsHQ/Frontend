@@ -28,13 +28,25 @@ const proxy = createProxyServer({
   changeOrigin: true
 });
 
-// Handle errors
+// Handle proxy errors
 proxy.on('error', function(err, req, res) {
   console.error('Proxy error:', err);
-  res.writeHead(500, {
-    'Content-Type': 'text/plain'
-  });
-  res.end('Proxy error: ' + err.message);
+  
+  // Make sure res is defined and writable
+  if (res && res.writeHead) {
+    // Add CORS headers even on error responses
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    
+    res.writeHead(502, {
+      'Content-Type': 'application/json'
+    });
+    res.end(JSON.stringify({ 
+      error: 'Proxy error', 
+      message: err.message 
+    }));
+  }
 });
 
 // Create the server to handle requests

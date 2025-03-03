@@ -55,9 +55,11 @@ proxied to your backend without CORS issues.
 
 ### Production Configuration
 
-The app supports different environments through `.env` files:
+The app supports different deployment strategies through multiple configuration methods:
 
-1. `.env.production` - Used when building for production with `--mode production`
+1. Build-time configuration: `.env.production` file (used with `bun run build:prod`)
+2. Runtime configuration: `static/js/runtime-config.js` (can be modified after deployment)
+3. API proxy: For when your API doesn't support CORS (use `bun run proxy`)
 
 #### Option 1: Run with API on same domain (Recommended)
 
