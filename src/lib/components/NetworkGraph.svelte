@@ -18,12 +18,7 @@
     onMount(async () => {
         if (browser) {
             try {
-                console.log('----------------------------------------');
-                console.log('Mounting NetworkGraph component');
-                console.log('Template Data:', JSON.stringify(templateData, null, 2));
-                
                 if (!templateData) {
-                    console.error('Template data is null or undefined');
                     error = 'No template data available';
                     isLoading = false;
                     return;
@@ -36,7 +31,6 @@
                 // Wait for DOM to be ready
                 setTimeout(() => {
                     if (!container) {
-                        console.error('Network container not found');
                         error = 'Network visualization container not available';
                         isLoading = false;
                         return;
@@ -45,13 +39,11 @@
                     try {
                         buildNetworkVisualization(Network, DataSet);
                     } catch (err) {
-                        console.error('Error building network:', err);
                         error = 'Error building network visualization';
                         isLoading = false;
                     }
                 }, 200);
             } catch (err) {
-                console.error('Error in NetworkGraph onMount:', err);
                 error = 'Failed to initialize network visualization';
                 isLoading = false;
             }
@@ -59,8 +51,6 @@
     });
     
     function buildNetworkVisualization(Network, DataSet) {
-        console.log('Building network visualization with data:', JSON.stringify(templateData, null, 2));
-        
         // Create data structures
         const nodes = new DataSet();
         const edges = new DataSet();
@@ -80,17 +70,13 @@
         
         if (templateData.vpc) {
             // Single vpc structure
-            console.log('Found single vpc object at templateData.vpc');
             vpc = templateData.vpc;
         } else if (templateData.vpcs && Array.isArray(templateData.vpcs) && templateData.vpcs.length > 0) {
             // Array of vpcs (use the first one for visualization)
-            console.log(`Found ${templateData.vpcs.length} vpcs in templateData.vpcs array, using first one`);
             vpc = templateData.vpcs[0];
         }
         
         if (!vpc) {
-            console.error('No VPC data found in template');
-            
             // Create a simple visualization with just Internet
             return { nodes, edges };
         }
@@ -99,8 +85,6 @@
         const vpcId = 'vpc';
         const vpcName = vpc.name || templateData.name || 'VPC';
         const vpcCidr = vpc.cidr || '';
-        
-        console.log(`Adding VPC: ${vpcName} (${vpcCidr})`);
         
         nodes.add({
             id: vpcId,
@@ -124,22 +108,18 @@
         
         // Option 1: Direct subnets array in vpc
         if (Array.isArray(vpc.subnets)) {
-            console.log('Found subnets array in vpc.subnets');
             rawSubnets = vpc.subnets;
         } 
         // Option 2: Subnets might be in a 'subnet' property
         else if (vpc.subnet && Array.isArray(vpc.subnet)) {
-            console.log('Found subnets array in vpc.subnet');
             rawSubnets = vpc.subnet;
         }
         // Option 3: If subnets is an object, convert to array
         else if (vpc.subnets && typeof vpc.subnets === 'object') {
-            console.log('Found subnets object, converting to array');
             rawSubnets = Object.values(vpc.subnets);
         }
         // Option 4: Check if subnet is directly a property
         else if (templateData.subnet && Array.isArray(templateData.subnet)) {
-            console.log('Found subnets at template.subnet level');
             rawSubnets = templateData.subnet;
         }
         
@@ -219,11 +199,8 @@
         
         // If there are no user-defined subnets, just return with admin subnet
         if (!rawSubnets || !rawSubnets.length) {
-            console.warn('No user-defined subnets found in template data');
             return { nodes, edges };
         }
-        
-        console.log(`Processing ${rawSubnets.length} user-defined subnets:`, rawSubnets);
         
         // Track subnet IDs to connect Jumpbox to all subnets
         const userSubnetIds = [];
@@ -231,15 +208,12 @@
         // Process each user-defined subnet
         rawSubnets.forEach((subnet, index) => {
             if (!subnet) {
-                console.warn(`Subnet at index ${index} is null or undefined`);
                 return;
             }
             
             const subnetId = `subnet_${index}`;
             const subnetName = subnet.name || `Subnet ${index + 1}`;
             const subnetCidr = subnet.cidr || '';
-            
-            console.log(`Adding subnet ${index}: ${subnetName} (${subnetCidr})`);
             
             // Add subnet node
             nodes.add({
@@ -267,31 +241,24 @@
             
             // Option 1: Direct hosts array in subnet
             if (Array.isArray(subnet.hosts)) {
-                console.log(`Found hosts array in subnet ${subnetName}`);
                 rawHosts = subnet.hosts;
             }
             // Option 2: Hosts might be in a 'host' property
             else if (subnet.host && Array.isArray(subnet.host)) {
-                console.log(`Found hosts array in subnet.host for ${subnetName}`);
                 rawHosts = subnet.host;
             }
             // Option 3: If hosts is an object, convert to array
             else if (subnet.hosts && typeof subnet.hosts === 'object') {
-                console.log(`Found hosts object in subnet ${subnetName}, converting to array`);
                 rawHosts = Object.values(subnet.hosts);
             }
             
             if (!rawHosts || !rawHosts.length) {
-                console.log(`No hosts found for subnet ${subnetName}`);
                 return;
             }
-            
-            console.log(`Processing ${rawHosts.length} hosts for subnet ${subnetName}:`, rawHosts);
             
             // Process each host
             rawHosts.forEach((host, hostIndex) => {
                 if (!host) {
-                    console.warn(`Host at index ${hostIndex} is null or undefined in subnet ${subnetName}`);
                     return;
                 }
                 
@@ -300,8 +267,6 @@
                 const hostName = host.hostname || host.name || `Host ${hostIndex + 1}`;
                 const hostOs = host.os || '';
                 const hostSpec = host.spec || '';
-                
-                console.log(`Adding host ${hostIndex} to subnet ${subnetName}: ${hostName} (${hostOs}, ${hostSpec})`);
                 
                 // Show hostname and IP (if available) in the network visualization
                 let hostLabel = `<b>${hostName}</b>`;
@@ -371,9 +336,6 @@
             },
         };
         
-        // Log the final network size
-        console.log(`Final network has ${nodes.length} nodes and ${edges.length} edges`);
-        
         // Create the network
         network = new Network(container, { nodes, edges }, options);
         
@@ -385,8 +347,6 @@
                 console.log('Node clicked:', node);
             }
         });
-        
-        console.log('Network visualization initialized successfully');
         
         // Set loading to false once the network is initialized
         isLoading = false;
