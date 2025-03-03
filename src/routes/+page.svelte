@@ -50,7 +50,7 @@
 <header class="fixed top-0 left-0 right-0 z-50 border-b border-gray-800/75 bg-gray-900 text-sm font-medium text-white">
   <div class="mx-auto flex h-16 max-w-screen-xl items-center justify-between px-4 sm:px-6 lg:px-8">
     <nav class="hidden md:flex md:items-center md:gap-4 lg:gap-8">
-      <a href="/" class="font-bold">OpenLabs</a>
+      <a href="/" class="font-bold">OpenLabsHQ</a>
       <!-- Documentation link will eventually be moved to a subdomain of the OpenLabs website -->
       <a href="https://openlabshq.github.io/Documentation/" class="font-bold" target="_blank" rel="noopener noreferrer">Documentation</a>
       {#if $auth.isAuthenticated}
