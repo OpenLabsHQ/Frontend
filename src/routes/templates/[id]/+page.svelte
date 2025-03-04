@@ -345,10 +345,6 @@
                                 <h2 class="text-lg font-semibold mb-4">Network Diagram</h2>
                                 {#key template?.id}
                                     {#if template}
-                                        {@const templateStr = JSON.stringify(template, null, 2)}
-                                        {@const networkInputData = `Network visualization input data: ${templateStr}`}
-                                        {@const _logData = console.log(networkInputData)}
-                                        <pre class="hidden">{networkInputData}</pre>
                                         <NetworkGraph templateData={template} />
                                     {:else}
                                         <div class="p-4 bg-gray-100 rounded">Loading network data...</div>
