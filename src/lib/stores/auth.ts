@@ -44,6 +44,7 @@ const createAuthStore = () => {
     logout: async () => {
       // Import dynamically to avoid circular dependencies
       const { authApi } = await import('$lib/api');
+      const { goto } = await import('$app/navigation');
       
       // Call the logout API to clear the cookie on the server
       await authApi.logout();
@@ -51,6 +52,9 @@ const createAuthStore = () => {
       set({
         isAuthenticated: false
       });
+      
+      // Redirect to login page after logout
+      goto('/login');
     }
   };
 };

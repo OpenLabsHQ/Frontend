@@ -4,7 +4,6 @@
     
     function handleLogout() {
         auth.logout();
-        goto('/login');
     }
 </script>
 
