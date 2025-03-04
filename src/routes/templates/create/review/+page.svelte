@@ -3,6 +3,7 @@
     import { templateWizard, type TemplateRange } from '$lib/stores/template-wizard';
     import { rangesApi } from '$lib/api';
     import { onMount } from 'svelte';
+    import NetworkGraph from '$lib/components/NetworkGraph.svelte';
     
     let template: TemplateRange;
     let isSubmitting = false;
@@ -48,6 +49,9 @@
         ), 
         0
     ) : 0;
+    
+    // Toggle for network visualization
+    let showNetworkVisualization = false;
     
     async function submitTemplate() {
         if (isSubmitting) return;
@@ -155,6 +159,34 @@
                     </div>
                 </div>
             </div>
+            
+            <!-- Network Visualization Toggle -->
+            <div class="mb-4 flex items-center">
+                <button 
+                    type="button"
+                    class="flex items-center text-blue-600 hover:text-blue-800 font-medium"
+                    on:click={() => showNetworkVisualization = !showNetworkVisualization}
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        {#if showNetworkVisualization}
+                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        {:else}
+                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                        {/if}
+                    </svg>
+                    {showNetworkVisualization ? 'Hide Network Visualization' : 'Show Network Visualization'}
+                </button>
+            </div>
+            
+            <!-- Network Visualization -->
+            {#if showNetworkVisualization}
+                <div class="mb-8 bg-white p-4 rounded-md shadow-sm border border-gray-200">
+                    <h3 class="text-lg font-medium mb-3">Network Visualization</h3>
+                    <div class="border border-gray-200 rounded-md">
+                        <NetworkGraph templateData={template} />
+                    </div>
+                </div>
+            {/if}
             
             <!-- VPC and Subnet Overview -->
             <div class="mb-8">
