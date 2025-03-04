@@ -65,6 +65,13 @@
         }
     }
     
+    // Clear count error when count changes
+    $: {
+        if (errors.count && count >= 1 && count <= 100) {
+            errors.count = '';
+        }
+    }
+    
     // Convert tags string to array
     function getTags(): string[] {
         return tagsInput.split(',')
