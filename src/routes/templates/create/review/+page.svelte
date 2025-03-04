@@ -3,6 +3,7 @@
     import { templateWizard, type TemplateRange } from '$lib/stores/template-wizard';
     import { rangesApi } from '$lib/api';
     import { onMount } from 'svelte';
+    import { slide } from 'svelte/transition';
     import NetworkGraph from '$lib/components/NetworkGraph.svelte';
     
     let template: TemplateRange;
@@ -52,6 +53,31 @@
     
     // Toggle for network visualization
     let showNetworkVisualization = false;
+    
+    // Simple arrays to track collapsed states
+    let collapsedVpcs = [];
+    let collapsedSubnets = [];
+    
+    // Toggle VPC collapse state
+    function toggleVpc(vpcIndex) {
+        const index = collapsedVpcs.indexOf(vpcIndex);
+        if (index === -1) {
+            collapsedVpcs = [...collapsedVpcs, vpcIndex];
+        } else {
+            collapsedVpcs = [...collapsedVpcs.slice(0, index), ...collapsedVpcs.slice(index + 1)];
+        }
+    }
+    
+    // Toggle subnet collapse state
+    function toggleSubnet(vpcIndex, subnetIndex) {
+        const key = `${vpcIndex}-${subnetIndex}`;
+        const index = collapsedSubnets.indexOf(key);
+        if (index === -1) {
+            collapsedSubnets = [...collapsedSubnets, key];
+        } else {
+            collapsedSubnets = [...collapsedSubnets.slice(0, index), ...collapsedSubnets.slice(index + 1)];
+        }
+    }
     
     async function submitTemplate() {
         if (isSubmitting) return;
@@ -194,42 +220,85 @@
                 
                 {#each template.vpcs as vpc, vpcIndex}
                     <div class="mb-4 bg-gray-50 p-4 rounded-md">
-                        <div class="font-medium text-blue-600 mb-2">
+                        <!-- VPC Header -->
+                        <button 
+                            class="w-full text-left font-medium text-blue-600 flex items-center cursor-pointer p-2 hover:bg-gray-100 rounded-md"
+                            on:click={() => toggleVpc(vpcIndex)}
+                        >
+                            {#if collapsedVpcs.includes(vpcIndex)}
+                                <!-- Right arrow when collapsed -->
+                                <svg class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                </svg>
+                            {:else}
+                                <!-- Down arrow when expanded -->
+                                <svg class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                </svg>
+                            {/if}
                             VPC: {vpc.name} ({vpc.cidr})
-                        </div>
+                            <span class="ml-2 text-sm text-gray-500">
+                                {vpc.subnets.length} subnet{vpc.subnets.length !== 1 ? 's' : ''},
+                                {vpc.subnets.reduce((total, subnet) => total + subnet.hosts.length, 0)} host{vpc.subnets.reduce((total, subnet) => total + subnet.hosts.length, 0) !== 1 ? 's' : ''}
+                            </span>
+                        </button>
                         
-                        {#if vpc.subnets.length === 0}
-                            <p class="text-sm text-gray-500">No subnets defined</p>
-                        {:else}
-                            {#each vpc.subnets as subnet, subnetIndex}
-                                <div class="ml-4 mb-3 pb-3 {subnetIndex !== vpc.subnets.length - 1 ? 'border-b border-gray-200' : ''}">
-                                    <div class="font-medium text-blue-500 mb-2">
-                                        Subnet: {subnet.name} ({subnet.cidr})
-                                    </div>
-                                    
-                                    {#if subnet.hosts.length === 0}
-                                        <p class="text-sm text-gray-500 ml-4">No hosts defined</p>
-                                    {:else}
-                                        <div class="ml-4 grid grid-cols-1 md:grid-cols-2 gap-2">
-                                            {#each subnet.hosts as host}
-                                                <div class="bg-white p-2 rounded border border-gray-200">
-                                                    <div class="font-medium">{host.hostname}</div>
-                                                    <div class="text-sm text-gray-600">
-                                                        {host.os.replace('_', ' ')} | {host.spec} | {host.size}GB
-                                                    </div>
-                                                    {#if host.tags.length > 0}
-                                                        <div class="mt-1">
-                                                            {#each host.tags as tag}
-                                                                <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded mr-1">{tag}</span>
-                                                            {/each}
+                        <!-- VPC Content -->
+                        {#if !collapsedVpcs.includes(vpcIndex)}
+                            {#if vpc.subnets.length === 0}
+                                <p class="text-sm text-gray-500 mt-2 ml-6">No subnets defined</p>
+                            {:else}
+                                {#each vpc.subnets as subnet, subnetIndex}
+                                    <div class="ml-6 mt-2 mb-2 pb-2 {subnetIndex !== vpc.subnets.length - 1 ? 'border-b border-gray-200' : ''}">
+                                        <!-- Subnet Header -->
+                                        <button 
+                                            class="w-full text-left font-medium text-blue-500 flex items-center cursor-pointer p-2 hover:bg-gray-200 rounded-md"
+                                            on:click={() => toggleSubnet(vpcIndex, subnetIndex)}
+                                        >
+                                            {#if collapsedSubnets.includes(`${vpcIndex}-${subnetIndex}`)}
+                                                <!-- Right arrow when collapsed -->
+                                                <svg class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                                </svg>
+                                            {:else}
+                                                <!-- Down arrow when expanded -->
+                                                <svg class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                                </svg>
+                                            {/if}
+                                            Subnet: {subnet.name} ({subnet.cidr})
+                                            <span class="ml-2 text-sm text-gray-500">
+                                                {subnet.hosts.length} host{subnet.hosts.length !== 1 ? 's' : ''}
+                                            </span>
+                                        </button>
+                                        
+                                        <!-- Subnet Content -->
+                                        {#if !collapsedSubnets.includes(`${vpcIndex}-${subnetIndex}`)}
+                                            {#if subnet.hosts.length === 0}
+                                                <p class="text-sm text-gray-500 mt-2 ml-6">No hosts defined</p>
+                                            {:else}
+                                                <div class="mt-2 ml-6 grid grid-cols-1 md:grid-cols-2 gap-2">
+                                                    {#each subnet.hosts as host}
+                                                        <div class="bg-white p-2 rounded border border-gray-200">
+                                                            <div class="font-medium">{host.hostname}</div>
+                                                            <div class="text-sm text-gray-600">
+                                                                {host.os.replace('_', ' ')} | {host.spec} | {host.size}GB
+                                                            </div>
+                                                            {#if host.tags.length > 0}
+                                                                <div class="mt-1">
+                                                                    {#each host.tags as tag}
+                                                                        <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded mr-1">{tag}</span>
+                                                                    {/each}
+                                                                </div>
+                                                            {/if}
                                                         </div>
-                                                    {/if}
+                                                    {/each}
                                                 </div>
-                                            {/each}
-                                        </div>
-                                    {/if}
-                                </div>
-                            {/each}
+                                            {/if}
+                                        {/if}
+                                    </div>
+                                {/each}
+                            {/if}
                         {/if}
                     </div>
                 {/each}
@@ -273,3 +342,7 @@
         </div>
     </div>
 </div>
+
+<style>
+    /* No special styles needed now that we're using separate SVGs */
+</style>
