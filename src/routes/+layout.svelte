@@ -3,6 +3,8 @@
   import { goto } from '$app/navigation';
   import { page } from '$app/stores';
   import { auth } from '$lib/stores/auth';
+  import { authApi } from '$lib/api';
+  import AuthCheck from '$lib/components/AuthCheck.svelte';
   
   // Import Tailwind CSS
   import '../tailwind.css';
@@ -10,29 +12,25 @@
   // Global auth state management
   let isInitializing = true;
   
-  onMount(async () => {
-    // Check localStorage for token on initial load
-    const token = localStorage.getItem('token');
-    // We no longer need user JSON - just check for token
-    
-    if (token) {
-      try {
-        // Only restore token, not user data
-        auth.setAuth(token);
-        
-        // If on landing page and authenticated, redirect to ranges
-        if ($page.url.pathname === '/' && $auth.isAuthenticated) {
-          goto('/ranges');
-        }
-      } catch (e) {
-        console.error('Failed to parse stored user data:', e);
-        auth.logout();
-      }
+  function handleAuthSuccess() {
+    // If on landing page and authenticated, redirect to ranges
+    if ($page.url.pathname === '/' && $auth.isAuthenticated) {
+      goto('/ranges');
     }
-    
     isInitializing = false;
+  }
+  
+  function handleAuthFailure() {
+    isInitializing = false;
+  }
+  
+  onMount(() => {
+    // Auth state will be checked by the AuthCheck component
+    // No need to check localStorage as we're using HTTP-only cookies
   });
 </script>
+
+<AuthCheck onAuthSuccess={handleAuthSuccess} onAuthFailure={handleAuthFailure} />
 
 {#if isInitializing}
   <!-- Loading screen while checking authentication -->

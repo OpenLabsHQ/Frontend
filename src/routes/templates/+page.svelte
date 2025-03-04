@@ -36,7 +36,6 @@
     onMount(async () => {
         // Check authentication
         if (!$auth.isAuthenticated) {
-            console.log("Not authenticated, redirecting to login");
             goto('/login');
             return;
         }
@@ -44,26 +43,20 @@
         // If authenticated, fetch templates from the API
         try {
             isLoading = true;
-            console.log('Fetching templates with auth state:', $auth);
             const result = await rangesApi.getTemplates();
-            console.log('Templates API response:', result);
             
             if (result.error) {
                 // Set a user-friendly error message
                 if (result.error.includes('not be found')) {
                     // 404 error - show no templates message instead of error
-                    console.log('No templates found in API');
                     templates = []; // Empty array to trigger the "No templates found" UI
                 } else {
                     // Other errors - show in the UI with fallback data
                     error = result.error;
-                    console.error('Failed to load templates:', error);
                     // Use fallback data for other errors
                     templates = fallbackTemplates;
                 }
-            } else if (result.data && Array.isArray(result.data)) {
-                console.log('Templates loaded from API:', result.data);
-                
+            } else if (result.data && Array.isArray(result.data)) {                
                 // Map API response to our Template interface
                 templates = result.data.map(template => ({
                     id: template.id || `template_${Math.random().toString(36).substr(2, 9)}`,
@@ -79,13 +72,11 @@
                     console.log('No templates returned from API');
                 }
             } else {
-                console.error('Invalid API response format:', result.data);
                 error = 'Invalid data received from server';
                 // Use fallback data
                 templates = fallbackTemplates;
             }
         } catch (err) {
-            console.error('Error fetching templates:', err);
             // Use fallback data on error
             templates = fallbackTemplates;
         } finally {

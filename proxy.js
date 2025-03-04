@@ -25,7 +25,12 @@ const API_URL = process.env.API_URL || 'http://localhost:8000';
 // Create a proxy server
 const proxy = createProxyServer({
   target: API_URL,
-  changeOrigin: true
+  changeOrigin: true,
+  // Enable cookies to pass through
+  cookieDomainRewrite: { "*": "" },
+  // Don't ignore response headers when proxying
+  preserveHeaderKeyCase: true,
+  secure: false
 });
 
 // Handle proxy errors
@@ -35,10 +40,12 @@ proxy.on('error', function(err, req, res) {
   // Make sure res is defined and writable
   if (res && res.writeHead) {
     // Add CORS headers even on error responses
-    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
+    const origin = req && req.headers.origin || 'http://localhost:3000';
+    res.setHeader('Access-Control-Allow-Origin', origin);
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
     res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Expose-Headers', 'Set-Cookie');
     
     res.writeHead(502, {
       'Content-Type': 'application/json'
@@ -53,10 +60,13 @@ proxy.on('error', function(err, req, res) {
 // Create the server to handle requests
 const server = createServer((req, res) => {
   // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
+  const origin = req.headers.origin || 'http://localhost:3000';
+  res.setHeader('Access-Control-Allow-Origin', origin);
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
+  // Add additional headers to allow cookies to work properly
+  res.setHeader('Access-Control-Expose-Headers', 'Set-Cookie');
   
   // Handle OPTIONS requests
   if (req.method === 'OPTIONS') {

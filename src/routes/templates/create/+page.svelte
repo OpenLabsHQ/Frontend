@@ -173,9 +173,7 @@
                 jsonError = 'Template must have at least one VPC with a subnet containing hosts';
                 return;
             }
-            
-            console.log('Template data validated:', templateData);
-            
+                        
             // Reset the store and set the entire template
             templateWizard.reset();
             
@@ -198,7 +196,6 @@
             
             // Wait a moment for store updates to propagate before redirecting
             setTimeout(() => {
-                console.log('Redirecting to review page with store:', $templateWizard);
                 goto('/templates/create/review');
             }, 200);
             

@@ -14,7 +14,6 @@
   
   onMount(() => {
     if ($auth.isAuthenticated) {
-      console.log("Already authenticated, redirecting to ranges");
       goto('/ranges');
     }
   });
@@ -56,9 +55,7 @@
         return;
       }
       
-      if (loginResult.data) {
-        console.log('Login after signup successful:', loginResult.data);
-        
+      if (loginResult.data) {       
         // With HTTP-only cookies, we don't receive the token directly
         // Just update auth state and redirect
         auth.setAuth();

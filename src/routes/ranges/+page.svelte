@@ -37,7 +37,6 @@
     onMount(async () => {
         // Check authentication
         if (!$auth.isAuthenticated) {
-            console.log("Not authenticated, redirecting to login");
             goto('/login');
             return;
         }
@@ -51,17 +50,14 @@
                 // Set a user-friendly error message
                 if (result.error.includes('not be found')) {
                     // 404 error - show no ranges message instead of error
-                    console.log('No ranges found in API');
                     deployedRanges = []; // Empty array to trigger the "No ranges found" UI
                 } else {
                     // Other errors - show in the UI with fallback data
                     error = result.error;
-                    console.error('Failed to load ranges:', error);
                     // Use fallback data for other errors
                     deployedRanges = fallbackRanges;
                 }
             } else if (result.data && Array.isArray(result.data)) {
-                console.log('Ranges loaded from API:', result.data);
                 
                 // Map API response to our Range interface
                 deployedRanges = result.data.map(range => ({

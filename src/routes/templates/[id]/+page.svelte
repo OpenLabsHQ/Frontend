@@ -38,44 +38,20 @@
             isLoading = true;
             error = '';
             
-            console.log("Fetching template data from API...");
             const response = await rangesApi.getTemplateById(templateId);
-            console.log("API response received:", response);
             
             if (response.error) {
-                console.error("API returned error:", response.error);
                 error = response.error;
                 return;
             }
             
             if (!response.data) {
-                console.error("API response contains no data");
                 error = "No template data received from API";
                 return;
             }
             
             template = response.data;
-            console.log("Template data assigned:", template);
-            
-            // Log the complete JSON structure for debugging
-            console.log("Full template JSON:", JSON.stringify(template, null, 2));
-            
-            // Analyze template structure
-            console.log("Template structure analysis:", {
-                id: template?.id,
-                name: template?.name,
-                provider: template?.provider,
-                vpc: template?.vpc ? "exists" : "missing",
-                subnets: template?.vpc?.subnets ? 
-                    (Array.isArray(template.vpc.subnets) ? 
-                        `array with ${template.vpc.subnets.length} items` : 
-                        "object structure") : 
-                    "missing"
-            });
-            
-            // No mock data - use the actual API response
         } catch (err) {
-            console.error("Error loading template:", err);
             error = err instanceof Error ? err.message : "Failed to load template";
         } finally {
             isLoading = false;
@@ -86,14 +62,9 @@
         if (browser) {
             // Check authentication
             if (!$auth.isAuthenticated) {
-                console.log("Not authenticated, redirecting to login");
                 goto('/login');
                 return;
             }
-            
-            console.log("------ TEMPLATE DETAILS PAGE ------");
-            console.log("Loading template data for ID:", data.templateId);
-            
             // Get the template data from the API
             await loadTemplateData(data.templateId);
         }
@@ -138,7 +109,6 @@
             }
         } catch (err) {
             deploymentError = 'An unexpected error occurred while deploying the template';
-            console.error('Template deployment error:', err);
             setAutoDismiss('error', 5000);
         } finally {
             deployingTemplate = false;

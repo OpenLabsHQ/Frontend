@@ -9,7 +9,6 @@
   onMount(async () => {
     // Immediately redirect if authenticated
     if ($auth.isAuthenticated) {
-      console.log("Already authenticated, redirecting to ranges");
       goto('/ranges');
       return;
     }
@@ -19,11 +18,9 @@
       const result = await authApi.getCurrentUser();
       if (result.error || !result.data) {
         // Token is invalid, logout
-        console.log("Invalid token, logging out");
         auth.logout();
       } else {
         // User is authenticated, redirect to ranges page
-        console.log("User authenticated, redirecting to ranges");
         goto('/ranges');
         return;
       }

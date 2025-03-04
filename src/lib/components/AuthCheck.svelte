@@ -7,22 +7,43 @@
   export let onAuthFailure: () => void = () => {};
   
   onMount(async () => {
+    // First, check if we're already authenticated in the store
+    // If yes, keep that state and still verify in the background
+    let localAuth = $auth.isAuthenticated;
+    
+    if (localAuth) {
+      // Call success right away to avoid visual flicker
+      onAuthSuccess();
+    }
+    
+    // Always verify with the API, but don't block UI if already authenticated
     try {
-      // Always try to get the current user - the cookie will be sent automatically
       const result = await authApi.getCurrentUser();
-      if (result.error || !result.data) {
-        console.error('Auth check failed:', result.error);
+      
+      if (result.data) {
+        // Successfully verified authentication
+        auth.setAuth();
+        
+        // Only call success if we weren't already authenticated
+        if (!localAuth) {
+          onAuthSuccess();
+        }
+      } else if ((result.isAuthError === true) || 
+                (result.status === 401 || result.status === 403)) {
+        // This is definitely an auth error
         auth.logout();
         onAuthFailure();
-      } else {
-        // Authentication successful, update auth state
-        auth.setAuth();
-        onAuthSuccess();
+      } else {      
+        // Already handled if previously authenticated
+        if (!localAuth) {
+          onAuthFailure();
+        }
       }
     } catch (error) {
-      console.error('Auth check error:', error);
-      auth.logout();
-      onAuthFailure();
+      // Only call failure if we weren't already authenticated
+      if (!localAuth) {
+        onAuthFailure();
+      }
     }
   });
 </script>

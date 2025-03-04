@@ -13,7 +13,6 @@
   // Redirect if already authenticated
   onMount(() => {
     if ($auth.isAuthenticated) {
-      console.log("Already authenticated, redirecting to ranges");
       goto('/ranges');
     }
   });
@@ -35,10 +34,7 @@
         return;
       }
       
-      if (result.data) {
-        console.log('Login successful:', result.data);
-        
-        // No need to handle token, it's set as HTTP-only cookie by the server
+      if (result.data) {       
         auth.setAuth();
         goto('/ranges');
       }

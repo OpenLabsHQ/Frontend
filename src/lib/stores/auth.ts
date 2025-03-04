@@ -32,9 +32,7 @@ const createAuthStore = () => {
     subscribe,
     
     // Set auth state after login/registration (token is stored in HTTP-only cookie by the server)
-    setAuth: () => {
-      console.log('Auth state updated: User authenticated');
-      
+    setAuth: () => {     
       set({
         isAuthenticated: true
       });
