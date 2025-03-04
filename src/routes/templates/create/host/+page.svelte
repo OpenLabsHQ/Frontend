@@ -16,6 +16,8 @@
     let spec: OpenLabsSpec = 'small';
     let size = 8;
     let tagsInput = '';
+    let count = 1;
+    let showAdvancedOptions = false;
     
     // Form validation
     let errors = {
@@ -24,7 +26,8 @@
         spec: '',
         size: '',
         vpc: '',
-        subnet: ''
+        subnet: '',
+        count: ''
     };
     
     // Initialize from store
@@ -79,6 +82,7 @@
         errors.size = '';
         errors.vpc = '';
         errors.subnet = '';
+        errors.count = '';
         
         // Validate VPC and subnet selections
         if (!selectedVpc) {
@@ -101,10 +105,33 @@
             isValid = false;
         }
         
-        // Check for duplicate hostnames
-        if (hostname && selectedSubnet && selectedSubnet.hosts.some(host => host.hostname === hostname)) {
-            errors.hostname = 'Host with this hostname already exists in this subnet';
+        // Validate count
+        if (count < 1 || count > 100) {
+            errors.count = 'Count must be between 1 and 100';
             isValid = false;
+        }
+        
+        // When creating multiple hosts, check for name conflicts with auto-generated names
+        if (count > 1) {
+            // Use the base hostname and append numbers automatically
+            const baseHostname = hostname.endsWith('-') ? hostname : `${hostname}-`;
+            
+            // Check if all potential hostnames are available
+            for (let i = 1; i <= count; i++) {
+                const newHostname = `${baseHostname}${i}`;
+                
+                if (selectedSubnet && selectedSubnet.hosts.some(host => host.hostname === newHostname)) {
+                    errors.hostname = `Host with hostname ${newHostname} already exists in this subnet`;
+                    isValid = false;
+                    break;
+                }
+            }
+        } else {
+            // Check for duplicate hostnames when creating a single host
+            if (hostname && selectedSubnet && selectedSubnet.hosts.some(host => host.hostname === hostname)) {
+                errors.hostname = 'Host with this hostname already exists in this subnet';
+                isValid = false;
+            }
         }
         
         // Validate size
@@ -119,17 +146,38 @@
     
     function addHost() {
         if (validateForm()) {
-            // Create new host
-            const newHost: TemplateHost = {
-                hostname,
-                os,
-                spec,
-                size,
-                tags: getTags()
-            };
-            
-            // Add to store
-            templateWizard.addHost(selectedVpcIndex, selectedSubnetIndex, newHost);
+            if (count === 1) {
+                // Create a single host
+                const newHost: TemplateHost = {
+                    hostname,
+                    os,
+                    spec,
+                    size,
+                    tags: getTags(),
+                    count: 1
+                };
+                
+                // Add to store
+                templateWizard.addHost(selectedVpcIndex, selectedSubnetIndex, newHost);
+            } else {
+                // Create multiple hosts with sequential hostnames
+                const baseHostname = hostname.endsWith('-') ? hostname : `${hostname}-`;
+                
+                // Add each host individually with the correct sequential hostname
+                for (let i = 1; i <= count; i++) {
+                    const newHostname = `${baseHostname}${i}`;
+                    
+                    const newHost: TemplateHost = {
+                        hostname: newHostname,
+                        os,
+                        spec,
+                        size,
+                        tags: getTags()
+                    };
+                    
+                    templateWizard.addHost(selectedVpcIndex, selectedSubnetIndex, newHost);
+                }
+            }
             
             // Update local state
             vpcs = [...$templateWizard.vpcs];
@@ -137,7 +185,7 @@
             // Reset form
             hostname = '';
             tagsInput = '';
-            // Keep the OS, spec, and size values for faster data entry
+            // Keep count, OS, spec, and size values for faster data entry
         }
     }
     
@@ -333,6 +381,54 @@
                     Optional. Add tags to help organize and filter hosts.
                 </p>
             </div>
+                
+            <!-- Advanced Options Toggle -->
+            <div class="md:col-span-2 mt-2">
+                <button 
+                    type="button"
+                    class="text-blue-600 hover:text-blue-800 text-sm flex items-center"
+                    on:click={() => showAdvancedOptions = !showAdvancedOptions}
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        {#if showAdvancedOptions}
+                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        {:else}
+                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                        {/if}
+                    </svg>
+                    Advanced Options
+                </button>
+            </div>
+            
+            <!-- Advanced Options Panel -->
+            {#if showAdvancedOptions}
+                <div class="md:col-span-2 mt-2 p-4 bg-gray-50 rounded-md border border-gray-200">
+                    <div class="mb-4">
+                        <label for="count" class="block text-sm font-medium text-gray-700 mb-1">
+                            Number of Machines to Create
+                        </label>
+                        <div class="flex items-center">
+                            <input
+                                type="number"
+                                id="count"
+                                bind:value={count}
+                                min="1"
+                                max="100"
+                                class="w-24 p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                            />
+                            <span class="ml-2 text-sm text-gray-500">machines</span>
+                        </div>
+                        {#if errors.count}
+                            <p class="mt-1 text-sm text-red-600">{errors.count}</p>
+                        {/if}
+                        {#if count > 1}
+                            <p class="mt-1 text-xs text-blue-600">
+                                We'll create {count} machines with hostnames {hostname.endsWith('-') ? hostname : `${hostname}-`}1 through {hostname.endsWith('-') ? hostname : `${hostname}-`}{count}.
+                            </p>
+                        {/if}
+                    </div>
+                </div>
+            {/if}
         </div>
         
         <div class="mt-4">
@@ -342,7 +438,7 @@
                 on:click={addHost}
                 disabled={!selectedSubnet}
             >
-                Add Host
+                {count > 1 ? `Add ${count} Hosts` : 'Add Host'}
             </button>
         </div>
     </div>

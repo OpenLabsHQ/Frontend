@@ -10,6 +10,7 @@ export interface TemplateHost {
     spec: OpenLabsSpec;
     size: number;
     tags: string[];
+    count?: number; // Number of identical machines to create
 }
 
 export interface TemplateSubnet {
