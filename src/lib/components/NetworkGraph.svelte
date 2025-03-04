@@ -179,23 +179,28 @@
             dashes: true
         });
         
-        // Add VPN-ed Attackers node (connected only to JumpBox)
-        nodes.add({
-            id: 'vpn_attackers',
-            label: '<b>VPN-ed Attackers</b>',
-            shape: 'image',
-            image: '/images/vpn.svg',
-            font: { multi: true },
-            size: 30
-        });
+        // Add VPN-ed Attackers node only if VPN is enabled
+        const vpnEnabled = templateData.vpn === true;
         
-        // Connect VPN-ed Attackers to Jumpbox
-        edges.add({
-            id: 'edge_vpn_admin',
-            from: 'vpn_attackers',
-            to: jumpboxId,
-            dashes: true
-        });
+        if (vpnEnabled) {
+            // Add VPN-ed Attackers node (connected only to JumpBox)
+            nodes.add({
+                id: 'vpn_attackers',
+                label: '<b>VPN-ed Attackers</b>',
+                shape: 'image',
+                image: '/images/vpn.svg',
+                font: { multi: true },
+                size: 30
+            });
+            
+            // Connect VPN-ed Attackers to Jumpbox
+            edges.add({
+                id: 'edge_vpn_admin',
+                from: 'vpn_attackers',
+                to: jumpboxId,
+                dashes: true
+            });
+        }
         
         // If there are no user-defined subnets, just return with admin subnet
         if (!rawSubnets || !rawSubnets.length) {
