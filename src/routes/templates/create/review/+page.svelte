@@ -11,9 +11,22 @@
     
     // Initialize from store
     onMount(() => {
-        // Validation check
+        if (!$templateWizard) {
+            goto('/templates/create');
+            return;
+        }
+        
+        // Ensure vpcs is an array
+        if (!Array.isArray($templateWizard.vpcs)) {
+            goto('/templates/create');
+            return;
+        }
+
+        // Validation check for hosts
         const hasHosts = $templateWizard.vpcs.some(vpc => 
-            vpc.subnets.some(subnet => subnet.hosts.length > 0)
+            Array.isArray(vpc.subnets) && vpc.subnets.some(subnet => 
+                Array.isArray(subnet.hosts) && subnet.hosts.length > 0
+            )
         );
         
         if (!$templateWizard.name || !hasHosts) {
