@@ -51,8 +51,8 @@ const createAuthStore = () => {
         isAuthenticated: false
       });
       
-      // Redirect to login page after logout
-      goto('/login');
+      // Redirect to landing page after logout
+      goto('/');
     }
   };
 };

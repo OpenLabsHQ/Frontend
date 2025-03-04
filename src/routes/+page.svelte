@@ -7,25 +7,13 @@
   let isLoading = true;
 
   onMount(async () => {
-    // Immediately redirect if authenticated
+    // If user is already authenticated, redirect to ranges
     if ($auth.isAuthenticated) {
       goto('/ranges');
       return;
     }
     
-    // Try to fetch current user if token exists (double-check)
-    if ($auth.token) {
-      const result = await authApi.getCurrentUser();
-      if (result.error || !result.data) {
-        // Token is invalid, logout
-        auth.logout();
-      } else {
-        // User is authenticated, redirect to ranges page
-        goto('/ranges');
-        return;
-      }
-    }
-    
+    // Show the landing page for unauthenticated users
     isLoading = false;
   });
 

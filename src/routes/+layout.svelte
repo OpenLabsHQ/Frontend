@@ -13,10 +13,7 @@
   let isInitializing = true;
   
   function handleAuthSuccess() {
-    // If on landing page and authenticated, redirect to ranges
-    if ($page.url.pathname === '/' && $auth.isAuthenticated) {
-      goto('/ranges');
-    }
+    // Don't redirect from the landing page
     isInitializing = false;
   }
   

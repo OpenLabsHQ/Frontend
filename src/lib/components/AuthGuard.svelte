@@ -4,7 +4,7 @@
   import { auth } from '$lib/stores/auth';
   
   export let requireAuth = true;
-  export let redirectTo = '/login';
+  export let redirectTo = '/';
   
   let loading = true;
   
@@ -12,7 +12,7 @@
     if (requireAuth && !$auth.isAuthenticated) {
       goto(redirectTo);
     } else if (!requireAuth && $auth.isAuthenticated) {
-      goto('/');
+      goto('/ranges');
     }
     
     loading = false;
