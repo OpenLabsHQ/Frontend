@@ -76,6 +76,6 @@
     
     <!-- Footer -->
     <div class="mt-12 text-sm text-gray-500">
-        <p>OpenLabsHQ &copy; {new Date().getFullYear()}</p>
+        <p>OpenLabs &copy; {new Date().getFullYear()}</p>
     </div>
 </div>
