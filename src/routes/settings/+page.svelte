@@ -37,11 +37,28 @@
   
   // Secrets status
   let secretsStatus = {
-    aws: false,
-    azure: false
+    aws: {
+      configured: false,
+      createdAt: null
+    },
+    azure: {
+      configured: false,
+      createdAt: null
+    }
   };
   let loadingSecrets = true;
   let loadingUserData = true;
+  
+  // Format date for tooltip display
+  function formatDateForTooltip(dateString) {
+    if (!dateString) return "Date unavailable";
+    try {
+      return `Configured on ${new Date(dateString).toLocaleString()}`;
+    } catch (e) {
+      console.error('Error formatting date:', e);
+      return "Configured (date format error)";
+    }
+  }
   
   // Load user data and secrets status
   onMount(async () => {
@@ -68,10 +85,35 @@
     try {
       // Then load secrets status
       const result = await userApi.getUserSecrets();
+      console.log('Secrets data:', result.data);
+      
       if (result.data) {
+        // Format created_at dates to be more human-readable
+        const formatDate = (dateString) => {
+          if (!dateString) return null;
+          try {
+            return new Date(dateString).toLocaleString();
+          } catch (e) {
+            console.error('Error formatting date:', dateString, e);
+            return dateString; // Return original string if it can't be formatted
+          }
+        };
+        
+        const awsDate = result.data.aws?.created_at;
+        const azureDate = result.data.azure?.created_at;
+        
+        console.log('AWS created_at:', awsDate, formatDate(awsDate));
+        console.log('Azure created_at:', azureDate, formatDate(azureDate));
+        
         secretsStatus = {
-          aws: result.data.aws?.has_credentials || false,
-          azure: result.data.azure?.has_credentials || false
+          aws: {
+            configured: result.data.aws?.has_credentials || false,
+            createdAt: awsDate
+          },
+          azure: {
+            configured: result.data.azure?.has_credentials || false,
+            createdAt: azureDate
+          }
         };
       }
     } catch (error) {
@@ -159,7 +201,8 @@
       
       // Success
       awsSuccess = 'AWS credentials updated successfully';
-      secretsStatus.aws = true; // Update local status
+      secretsStatus.aws.configured = true; // Update local status
+      secretsStatus.aws.createdAt = new Date().toISOString();
       awsAccessKey = '';
       awsSecretKey = '';
     } catch (error) {
@@ -213,7 +256,8 @@
       
       // Success
       azureSuccess = 'Azure credentials updated successfully';
-      secretsStatus.azure = true; // Update local status
+      secretsStatus.azure.configured = true; // Update local status
+      secretsStatus.azure.createdAt = new Date().toISOString();
       azureClientId = '';
       azureClientSecret = '';
       azureTenantId = '';
@@ -347,8 +391,11 @@
             <div class="bg-gray-700 rounded-lg p-5 flex flex-col h-full" style="min-height: 350px;">
               <div class="flex justify-between items-center mb-4">
                 <h3 class="text-xl font-medium">AWS Credentials</h3>
-                <span class={`${secretsStatus.aws ? "bg-green-500" : "bg-gray-500"} px-2 py-1 rounded-full text-xs font-semibold`}>
-                  {secretsStatus.aws ? "Configured" : "Not Configured"}
+                <span 
+                  class={`${secretsStatus.aws.configured ? "bg-green-500" : "bg-gray-500"} px-2 py-1 rounded-full text-xs font-semibold cursor-help`}
+                  title={secretsStatus.aws.configured ? formatDateForTooltip(secretsStatus.aws.createdAt) : "Not configured yet"}
+                >
+                  {secretsStatus.aws.configured ? "Configured" : "Not Configured"}
                 </span>
               </div>
               
@@ -408,7 +455,7 @@
                       </span>
                       Updating...
                     {:else}
-                      {secretsStatus.aws ? "Update AWS Credentials" : "Set AWS Credentials"}
+                      {secretsStatus.aws.configured ? "Update AWS Credentials" : "Set AWS Credentials"}
                     {/if}
                   </button>
                 </div>
@@ -419,8 +466,11 @@
             <div class="bg-gray-700 rounded-lg p-5 flex flex-col h-full" style="min-height: 350px;">
               <div class="flex justify-between items-center mb-4">
                 <h3 class="text-xl font-medium">Azure Credentials</h3>
-                <span class={`${secretsStatus.azure ? "bg-green-500" : "bg-gray-500"} px-2 py-1 rounded-full text-xs font-semibold`}>
-                  {secretsStatus.azure ? "Configured" : "Not Configured"}
+                <span 
+                  class={`${secretsStatus.azure.configured ? "bg-green-500" : "bg-gray-500"} px-2 py-1 rounded-full text-xs font-semibold cursor-help`}
+                  title={secretsStatus.azure.configured ? formatDateForTooltip(secretsStatus.azure.createdAt) : "Not configured yet"}
+                >
+                  {secretsStatus.azure.configured ? "Configured" : "Not Configured"}
                 </span>
               </div>
               
@@ -506,7 +556,7 @@
                       </span>
                       Updating...
                     {:else}
-                      {secretsStatus.azure ? "Update Azure Credentials" : "Set Azure Credentials"}
+                      {secretsStatus.azure.configured ? "Update Azure Credentials" : "Set Azure Credentials"}
                     {/if}
                   </button>
                 </div>
