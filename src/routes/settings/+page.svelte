@@ -4,6 +4,7 @@
   import { auth } from '$lib/stores/auth';
   import AuthGuard from '$lib/components/AuthGuard.svelte';
   import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
+  import { fade } from 'svelte/transition';
   
   // Password form
   let currentPassword = '';
@@ -57,6 +58,40 @@
     } catch (e) {
       console.error('Error formatting date:', e);
       return "Configured (date format error)";
+    }
+  }
+  
+  // Custom tooltip management
+  let showAwsTooltip = false;
+  let showAzureTooltip = false;
+  
+  // Position tracking for tooltips
+  let awsTooltipPosition = { x: 0, y: 0 };
+  let azureTooltipPosition = { x: 0, y: 0 };
+  
+  function handleMouseEnter(event, tooltipType) {
+    // Calculate position for tooltip
+    const rect = event.target.getBoundingClientRect();
+    const position = {
+      x: rect.left + window.scrollX + rect.width / 2, // Center horizontally
+      y: rect.top + window.scrollY - 40 // Position higher above the element
+    };
+    
+    // Set position and show appropriate tooltip
+    if (tooltipType === 'aws') {
+      awsTooltipPosition = position;
+      showAwsTooltip = true;
+    } else if (tooltipType === 'azure') {
+      azureTooltipPosition = position;
+      showAzureTooltip = true;
+    }
+  }
+  
+  function handleMouseLeave(tooltipType) {
+    if (tooltipType === 'aws') {
+      showAwsTooltip = false;
+    } else if (tooltipType === 'azure') {
+      showAzureTooltip = false;
     }
   }
   
@@ -271,7 +306,7 @@
 </script>
 
 <AuthGuard requireAuth={true} redirectTo="/login">
-  <div class="min-h-screen bg-gray-900 text-white p-8">
+  <div class="min-h-screen bg-gray-900 text-white p-8 relative">
     <div class="max-w-4xl mx-auto">
       <h1 class="text-3xl font-bold mb-8">Account Settings</h1>
       
@@ -392,11 +427,28 @@
               <div class="flex justify-between items-center mb-4">
                 <h3 class="text-xl font-medium">AWS Credentials</h3>
                 <span 
-                  class={`${secretsStatus.aws.configured ? "bg-green-500" : "bg-gray-500"} px-2 py-1 rounded-full text-xs font-semibold cursor-help`}
-                  title={secretsStatus.aws.configured ? formatDateForTooltip(secretsStatus.aws.createdAt) : "Not configured yet"}
+                  role="status"
+                  aria-label={secretsStatus.aws.configured ? 
+                    formatDateForTooltip(secretsStatus.aws.createdAt) : 
+                    "AWS credentials not configured"
+                  }
+                  class={`${secretsStatus.aws.configured ? "bg-green-500" : "bg-gray-500"} px-2 py-1 rounded-full text-xs font-semibold cursor-pointer relative`}
+                  on:mouseenter={(e) => handleMouseEnter(e, 'aws')}
+                  on:mouseleave={() => handleMouseLeave('aws')}
                 >
                   {secretsStatus.aws.configured ? "Configured" : "Not Configured"}
                 </span>
+                
+                {#if showAwsTooltip && secretsStatus.aws.configured}
+                  <div 
+                    transition:fade={{ duration: 150 }}
+                    class="absolute z-50 bg-gray-900 text-white px-3 py-2 pb-3 text-sm rounded-md shadow-lg transform -translate-x-1/2"
+                    style="left: {awsTooltipPosition.x}px; top: {awsTooltipPosition.y}px; pointer-events: none;"
+                  >
+                    {formatDateForTooltip(secretsStatus.aws.createdAt)}
+                    <div class="tooltip-arrow absolute w-2 h-2 bg-gray-900 transform rotate-45" style="left: 50%; bottom: -4px; margin-left: -4px;"></div>
+                  </div>
+                {/if}
               </div>
               
               <form on:submit|preventDefault={handleAwsSecretsUpdate} class="flex flex-col flex-grow">
@@ -467,11 +519,28 @@
               <div class="flex justify-between items-center mb-4">
                 <h3 class="text-xl font-medium">Azure Credentials</h3>
                 <span 
-                  class={`${secretsStatus.azure.configured ? "bg-green-500" : "bg-gray-500"} px-2 py-1 rounded-full text-xs font-semibold cursor-help`}
-                  title={secretsStatus.azure.configured ? formatDateForTooltip(secretsStatus.azure.createdAt) : "Not configured yet"}
+                  role="status"
+                  aria-label={secretsStatus.azure.configured ? 
+                    formatDateForTooltip(secretsStatus.azure.createdAt) : 
+                    "Azure credentials not configured"
+                  }
+                  class={`${secretsStatus.azure.configured ? "bg-green-500" : "bg-gray-500"} px-2 py-1 rounded-full text-xs font-semibold cursor-pointer relative`}
+                  on:mouseenter={(e) => handleMouseEnter(e, 'azure')}
+                  on:mouseleave={() => handleMouseLeave('azure')}
                 >
                   {secretsStatus.azure.configured ? "Configured" : "Not Configured"}
                 </span>
+                
+                {#if showAzureTooltip && secretsStatus.azure.configured}
+                  <div 
+                    transition:fade={{ duration: 150 }}
+                    class="absolute z-50 bg-gray-900 text-white px-3 py-2 pb-3 text-sm rounded-md shadow-lg transform -translate-x-1/2"
+                    style="left: {azureTooltipPosition.x}px; top: {azureTooltipPosition.y}px; pointer-events: none;"
+                  >
+                    {formatDateForTooltip(secretsStatus.azure.createdAt)}
+                    <div class="tooltip-arrow absolute w-2 h-2 bg-gray-900 transform rotate-45" style="left: 50%; bottom: -4px; margin-left: -4px;"></div>
+                  </div>
+                {/if}
               </div>
               
               <form on:submit|preventDefault={handleAzureSecretsUpdate} class="flex flex-col flex-grow">
