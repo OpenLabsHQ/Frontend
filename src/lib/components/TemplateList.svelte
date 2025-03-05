@@ -209,50 +209,54 @@
             </div>
         {:else}
             {#each templates.filter(template => template.name.toLowerCase().includes(searchTerm.toLowerCase())) as template}
-                <div class="bg-white border border-gray-300 rounded-lg shadow-sm m-4 p-4 w-72 h-48 flex flex-col">
-                    <!-- Provider badge and name -->
-                    <div class="flex justify-between items-center mb-3">
-                        <h2 class="font-bold text-xl truncate">{template.name}</h2>
-                        <span class={`text-xs px-2 py-1 rounded-full ${getProviderInfo(template.provider).color}`}>
-                            {getProviderInfo(template.provider).icon} {template.provider}
-                        </span>
+                <div class="bg-white border border-gray-300 rounded-lg shadow-sm m-4 p-4 pb-5 w-80 h-60 flex flex-col justify-between">
+                    <div>
+                        <!-- Provider badge and name -->
+                        <div class="flex justify-between items-start mb-3">
+                            <h2 class="font-bold text-lg max-w-[70%] line-clamp-2" title={template.name}>{template.name}</h2>
+                            <span class={`ml-1 text-xs px-2 py-1 rounded-full whitespace-nowrap ${getProviderInfo(template.provider).color}`}>
+                                {getProviderInfo(template.provider).icon} {template.provider}
+                            </span>
+                        </div>
+                        
+                        <!-- Description placeholder -->
+                        <p class="text-gray-700 text-sm mb-4 line-clamp-2">
+                            {template.description || `A ${template.provider} template for creating cyber ranges.`}
+                        </p>
                     </div>
                     
-                    <!-- Features -->
-                    <div class="mb-3 flex space-x-2 text-xs">
-                        <span class={`px-2 py-1 rounded ${template.vnc ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-400'}`}>
-                            VNC {template.vnc ? '✓' : '✗'}
-                        </span>
-                        <span class={`px-2 py-1 rounded ${template.vpn ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-400'}`}>
-                            VPN {template.vpn ? '✓' : '✗'}
-                        </span>
-                    </div>
-                    
-                    <!-- Description placeholder -->
-                    <p class="text-gray-700 text-sm flex-grow">
-                        {template.description || `A ${template.provider} template for creating cyber ranges.`}
-                    </p>
-                    
-                    <!-- Action buttons -->
-                    <div class="mt-auto flex justify-between">
-                        <a href={`/templates/${template.id}`} class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md text-sm text-center">
-                            View Details
-                        </a>
-                        <button 
-                            class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md text-sm flex items-center {deployingTemplateId === template.id ? 'opacity-75 cursor-not-allowed' : ''}"
-                            on:click={() => deployTemplate(template.id, template.name)}
-                            disabled={deployingTemplateId === template.id}
-                        >
-                            {#if deployingTemplateId === template.id}
-                                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                Deploying...
-                            {:else}
-                                Deploy
-                            {/if}
-                        </button>
+                    <div>
+                        <!-- Features -->
+                        <div class="mb-4 flex space-x-2 text-xs">
+                            <span class={`px-2 py-1 rounded ${template.vnc ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-400'}`}>
+                                VNC {template.vnc ? '✓' : '✗'}
+                            </span>
+                            <span class={`px-2 py-1 rounded ${template.vpn ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-400'}`}>
+                                VPN {template.vpn ? '✓' : '✗'}
+                            </span>
+                        </div>
+                        
+                        <!-- Action buttons -->
+                        <div class="flex justify-between mt-1">
+                            <a href={`/templates/${template.id}`} class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md text-sm text-center">
+                                View Details
+                            </a>
+                            <button 
+                                class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md text-sm flex items-center {deployingTemplateId === template.id ? 'opacity-75 cursor-not-allowed' : ''}"
+                                on:click={() => deployTemplate(template.id, template.name)}
+                                disabled={deployingTemplateId === template.id}
+                            >
+                                {#if deployingTemplateId === template.id}
+                                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Deploying...
+                                {:else}
+                                    Deploy
+                                {/if}
+                            </button>
+                        </div>
                     </div>
                 </div>
             {/each}
