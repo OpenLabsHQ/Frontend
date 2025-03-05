@@ -411,7 +411,31 @@
       
       <!-- Cloud Provider Credentials -->
       <div class="bg-gray-800 rounded-lg p-6 mb-8">
-        <h2 class="text-2xl font-semibold mb-4">Cloud Provider Credentials</h2>
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center">
+            <h2 class="text-2xl font-semibold">Cloud Provider Credentials</h2>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+          </div>
+          <div class="relative group">
+            <button class="bg-gray-700 hover:bg-gray-600 text-gray-300 w-6 h-6 rounded-full focus:outline-none flex items-center justify-center" aria-label="Encryption information">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </button>
+            <div class="absolute right-0 mt-2 w-72 bg-gray-900 text-white px-4 py-3 rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-sm z-50 pointer-events-none">
+              <div class="flex items-center mb-2 text-green-400">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                <span class="font-semibold">End-to-End Encrypted</span>
+              </div>
+              <p>Your credentials are encrypted in your browser before being sent to the server. Even the person hosting OpenLabs cannot access your cloud provider credentials.</p>
+              <div class="tooltip-arrow absolute w-2 h-2 bg-gray-900 transform rotate-45" style="top: -4px; right: 10px;"></div>
+            </div>
+          </div>
+        </div>
         
         {#if loadingSecrets}
           <div class="flex justify-center py-8">
