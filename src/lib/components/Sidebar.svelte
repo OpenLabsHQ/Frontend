@@ -1,6 +1,22 @@
 <script lang="ts">
     import { auth } from "$lib/stores/auth";
     import { goto } from "$app/navigation";
+    import { onMount } from "svelte";
+    
+    // For easier access to user data in the template
+    $: userName = $auth.user?.name || "Account";
+    
+    // Fetch user data on component mount
+    onMount(async () => {
+        // Import API dynamically to avoid circular dependencies
+        const { authApi } = await import('$lib/api');
+        const response = await authApi.getCurrentUser();
+        
+        if (response.data?.user) {
+            // Update the auth store with user data
+            auth.updateUser(response.data.user);
+        }
+    });
     
     function handleLogout() {
         auth.logout();
@@ -25,7 +41,7 @@
     
     <div class="flex flex-col items-center p-4 absolute bottom-0 w-full">
         <img class="w-12 h-12 rounded-full mb-2" src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png" alt="User Avatar" />
-        <p class="mb-2">Account</p>
+        <p class="mb-2">{userName}</p>
         <button on:click={handleLogout} class="text-sm px-4 py-1.5 bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white rounded-full transition-colors mt-1">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />

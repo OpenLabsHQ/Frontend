@@ -17,25 +17,42 @@ import { writable } from 'svelte/store';
 
 interface AuthStore {
   isAuthenticated: boolean;
+  user?: {
+    name?: string;
+    email?: string;
+  };
 }
 
 // Create auth store with initial state
 const createAuthStore = () => {
   // Start with not authenticated - we'll verify via API calls
   const initialState: AuthStore = {
-    isAuthenticated: false
+    isAuthenticated: false,
+    user: undefined
   };
 
-  const { subscribe, set } = writable<AuthStore>(initialState);
+  const { subscribe, set, update } = writable<AuthStore>(initialState);
 
   return {
     subscribe,
     
     // Set auth state after login/registration (token is stored in HTTP-only cookie by the server)
-    setAuth: () => {     
+    setAuth: (userData = {}) => {     
       set({
-        isAuthenticated: true
+        isAuthenticated: true,
+        user: userData
       });
+    },
+    
+    // Update user information
+    updateUser: (userData = {}) => {
+      update(state => ({
+        ...state,
+        user: {
+          ...state.user,
+          ...userData
+        }
+      }));
     },
     
     // Clear auth state on logout
@@ -48,7 +65,8 @@ const createAuthStore = () => {
       await authApi.logout();
       
       set({
-        isAuthenticated: false
+        isAuthenticated: false,
+        user: undefined
       });
       
       // Redirect to landing page after logout

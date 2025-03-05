@@ -197,31 +197,28 @@ export const authApi = {
   // Get current user information or verify authentication
   getCurrentUser: async () => {
     try {
-      // Try getting templates as an authentication check
-      // Any authenticated endpoint should work to verify the token
-      const response = await apiRequest<any[]>(
-        '/api/v1/templates/ranges',
+      // Get user information from the /api/v1/users/me endpoint
+      const userResponse = await apiRequest<any>(
+        '/api/v1/users/me',
         'GET',
         undefined,
         true
       );
       
-      // If we get data back, we're authenticated
-      if (response.data) {
-        // Return a successful response with mock user data
-        // The important part is that we have data, not what the data is
+      // If we get data back, we're authenticated and have user info
+      if (userResponse.data) {
         return { 
-          data: { user: { authenticated: true } },
+          data: { user: { ...userResponse.data, authenticated: true } },
           status: 200
         };
       }
       
       // If we get an auth error, pass it through
-      if (response.isAuthError || response.status === 401 || response.status === 403) {
+      if (userResponse.isAuthError || userResponse.status === 401 || userResponse.status === 403) {
         return {
           error: 'Authentication failed',
           isAuthError: true,
-          status: response.status || 401
+          status: userResponse.status || 401
         };
       }
       
