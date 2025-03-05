@@ -23,15 +23,39 @@ interface AuthStore {
   };
 }
 
-// Create auth store with initial state
-const createAuthStore = () => {
-  // Start with not authenticated - we'll verify via API calls
-  const initialState: AuthStore = {
+// Load stored auth data from localStorage if available
+const loadStoredAuthData = (): AuthStore => {
+  if (typeof window !== 'undefined') {
+    const storedData = localStorage.getItem('auth_data');
+    if (storedData) {
+      try {
+        return JSON.parse(storedData);
+      } catch (e) {
+        console.error('Failed to parse stored auth data:', e);
+      }
+    }
+  }
+  
+  // Default initial state
+  return {
     isAuthenticated: false,
     user: undefined
   };
+};
+
+// Create auth store with initial state
+const createAuthStore = () => {
+  // Start with stored data or default
+  const initialState: AuthStore = loadStoredAuthData();
 
   const { subscribe, set, update } = writable<AuthStore>(initialState);
+  
+  // Subscribe to store changes and save to localStorage
+  if (typeof window !== 'undefined') {
+    subscribe(state => {
+      localStorage.setItem('auth_data', JSON.stringify(state));
+    });
+  }
 
   return {
     subscribe,
@@ -63,6 +87,11 @@ const createAuthStore = () => {
       
       // Call the logout API to clear the cookie on the server
       await authApi.logout();
+      
+      // Clear localStorage
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('auth_data');
+      }
       
       set({
         isAuthenticated: false,

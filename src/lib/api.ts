@@ -114,6 +114,60 @@ async function apiRequest<T>(
 // Import auth store
 import { auth } from '$lib/stores/auth';
 
+// User API for managing user settings
+export const userApi = {
+  // Get user secrets status
+  getUserSecrets: async () => {
+    return await apiRequest<any>(
+      '/api/v1/users/me/secrets',
+      'GET',
+      undefined,
+      true
+    );
+  },
+  
+  // Update user password
+  updatePassword: async (currentPassword: string, newPassword: string) => {
+    return await apiRequest<any>(
+      '/api/v1/users/me/password',
+      'POST',
+      {
+        current_password: currentPassword,
+        new_password: newPassword
+      },
+      true
+    );
+  },
+  
+  // Set AWS secrets
+  setAwsSecrets: async (accessKey: string, secretKey: string) => {
+    return await apiRequest<any>(
+      '/api/v1/users/me/secrets/aws',
+      'POST',
+      {
+        aws_access_key: accessKey,
+        aws_secret_key: secretKey
+      },
+      true
+    );
+  },
+  
+  // Set Azure secrets
+  setAzureSecrets: async (clientId: string, clientSecret: string, tenantId: string, subscriptionId: string) => {
+    return await apiRequest<any>(
+      '/api/v1/users/me/secrets/azure',
+      'POST',
+      {
+        azure_client_id: clientId,
+        azure_client_secret: clientSecret,
+        azure_tenant_id: tenantId,
+        azure_subscription_id: subscriptionId
+      },
+      true
+    );
+  }
+};
+
 export const authApi = {
   login: async (credentials: LoginCredentials) => {
     try {
@@ -321,6 +375,7 @@ export const templatesApi = {
 
 export default {
   auth: authApi,
+  user: userApi,
   ranges: rangesApi,
   templates: templatesApi
 };

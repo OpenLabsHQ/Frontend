@@ -1,0 +1,520 @@
+<script lang="ts">
+  import { onMount } from 'svelte';
+  import { userApi } from '$lib/api';
+  import { auth } from '$lib/stores/auth';
+  import AuthGuard from '$lib/components/AuthGuard.svelte';
+  import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
+  
+  // Password form
+  let currentPassword = '';
+  let newPassword = '';
+  let confirmPassword = '';
+  let passwordError = '';
+  let passwordSuccess = '';
+  let isPasswordLoading = false;
+  
+  // AWS secrets form
+  let awsAccessKey = '';
+  let awsSecretKey = '';
+  let awsError = '';
+  let awsSuccess = '';
+  let isAwsLoading = false;
+  
+  // Azure secrets form
+  let azureClientId = '';
+  let azureClientSecret = '';
+  let azureTenantId = '';
+  let azureSubscriptionId = '';
+  let azureError = '';
+  let azureSuccess = '';
+  let isAzureLoading = false;
+  
+  // User data
+  let userData = {
+    name: '',
+    email: ''
+  };
+  
+  // Secrets status
+  let secretsStatus = {
+    aws: false,
+    azure: false
+  };
+  let loadingSecrets = true;
+  let loadingUserData = true;
+  
+  // Load user data and secrets status
+  onMount(async () => {
+    try {
+      // Load user data first
+      const { authApi } = await import('$lib/api');
+      const userResponse = await authApi.getCurrentUser();
+      
+      if (userResponse.data?.user) {
+        userData = {
+          name: userResponse.data.user.name || '',
+          email: userResponse.data.user.email || ''
+        };
+        
+        // Update auth store
+        auth.updateUser(userResponse.data.user);
+      }
+    } catch (error) {
+      console.error('Failed to load user data:', error);
+    } finally {
+      loadingUserData = false;
+    }
+    
+    try {
+      // Then load secrets status
+      const result = await userApi.getUserSecrets();
+      if (result.data) {
+        secretsStatus = {
+          aws: result.data.aws?.has_credentials || false,
+          azure: result.data.azure?.has_credentials || false
+        };
+      }
+    } catch (error) {
+      console.error('Failed to load secrets status:', error);
+    } finally {
+      loadingSecrets = false;
+    }
+  });
+  
+  // Handle password update
+  async function handlePasswordUpdate() {
+    // Reset messages
+    passwordError = '';
+    passwordSuccess = '';
+    
+    // Validate input
+    if (!currentPassword) {
+      passwordError = 'Current password is required';
+      return;
+    }
+    
+    if (!newPassword) {
+      passwordError = 'New password is required';
+      return;
+    }
+    
+    if (newPassword !== confirmPassword) {
+      passwordError = 'New passwords do not match';
+      return;
+    }
+    
+    if (newPassword.length < 8) {
+      passwordError = 'Password must be at least 8 characters long';
+      return;
+    }
+    
+    isPasswordLoading = true;
+    
+    try {
+      const result = await userApi.updatePassword(currentPassword, newPassword);
+      
+      if (result.error) {
+        passwordError = result.error;
+        return;
+      }
+      
+      // Success
+      passwordSuccess = 'Password updated successfully';
+      currentPassword = '';
+      newPassword = '';
+      confirmPassword = '';
+    } catch (error) {
+      passwordError = error instanceof Error ? error.message : 'Failed to update password';
+    } finally {
+      isPasswordLoading = false;
+    }
+  }
+  
+  // Handle AWS secrets update
+  async function handleAwsSecretsUpdate() {
+    // Reset messages
+    awsError = '';
+    awsSuccess = '';
+    
+    // Validate input
+    if (!awsAccessKey) {
+      awsError = 'AWS Access Key is required';
+      return;
+    }
+    
+    if (!awsSecretKey) {
+      awsError = 'AWS Secret Key is required';
+      return;
+    }
+    
+    isAwsLoading = true;
+    
+    try {
+      const result = await userApi.setAwsSecrets(awsAccessKey, awsSecretKey);
+      
+      if (result.error) {
+        awsError = result.error;
+        return;
+      }
+      
+      // Success
+      awsSuccess = 'AWS credentials updated successfully';
+      secretsStatus.aws = true; // Update local status
+      awsAccessKey = '';
+      awsSecretKey = '';
+    } catch (error) {
+      awsError = error instanceof Error ? error.message : 'Failed to update AWS credentials';
+    } finally {
+      isAwsLoading = false;
+    }
+  }
+  
+  // Handle Azure secrets update
+  async function handleAzureSecretsUpdate() {
+    // Reset messages
+    azureError = '';
+    azureSuccess = '';
+    
+    // Validate input
+    if (!azureClientId) {
+      azureError = 'Azure Client ID is required';
+      return;
+    }
+    
+    if (!azureClientSecret) {
+      azureError = 'Azure Client Secret is required';
+      return;
+    }
+    
+    if (!azureTenantId) {
+      azureError = 'Azure Tenant ID is required';
+      return;
+    }
+    
+    if (!azureSubscriptionId) {
+      azureError = 'Azure Subscription ID is required';
+      return;
+    }
+    
+    isAzureLoading = true;
+    
+    try {
+      const result = await userApi.setAzureSecrets(
+        azureClientId, 
+        azureClientSecret, 
+        azureTenantId, 
+        azureSubscriptionId
+      );
+      
+      if (result.error) {
+        azureError = result.error;
+        return;
+      }
+      
+      // Success
+      azureSuccess = 'Azure credentials updated successfully';
+      secretsStatus.azure = true; // Update local status
+      azureClientId = '';
+      azureClientSecret = '';
+      azureTenantId = '';
+      azureSubscriptionId = '';
+    } catch (error) {
+      azureError = error instanceof Error ? error.message : 'Failed to update Azure credentials';
+    } finally {
+      isAzureLoading = false;
+    }
+  }
+</script>
+
+<AuthGuard requireAuth={true} redirectTo="/login">
+  <div class="min-h-screen bg-gray-900 text-white p-8">
+    <div class="max-w-4xl mx-auto">
+      <h1 class="text-3xl font-bold mb-8">Account Settings</h1>
+      
+      <!-- User info -->
+      <div class="bg-gray-800 rounded-lg p-6 mb-8">
+        <h2 class="text-2xl font-semibold mb-4">User Information</h2>
+        {#if loadingUserData}
+          <div class="flex justify-center py-4">
+            <svg class="animate-spin h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          </div>
+        {:else}
+          <div class="flex items-center space-x-4 mb-4">
+            <div class="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center">
+              <span class="text-2xl">{userData.name?.[0] || 'U'}</span>
+            </div>
+            <div>
+              <p class="text-xl font-medium">{userData.name || 'User'}</p>
+              <p class="text-gray-400">{userData.email || 'email@example.com'}</p>
+            </div>
+          </div>
+        {/if}
+      </div>
+      
+      <!-- Password change -->
+      <div class="bg-gray-800 rounded-lg p-6 mb-8">
+        <h2 class="text-2xl font-semibold mb-4">Change Password</h2>
+        
+        <form on:submit|preventDefault={handlePasswordUpdate} class="space-y-4">
+          <div>
+            <label for="current-password" class="block text-sm font-medium text-gray-300 mb-1">
+              Current Password
+            </label>
+            <input
+              id="current-password"
+              type="password"
+              bind:value={currentPassword}
+              class="w-full px-3 py-2 border border-gray-700 rounded-md bg-gray-900 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter current password"
+            />
+          </div>
+          
+          <div>
+            <label for="new-password" class="block text-sm font-medium text-gray-300 mb-1">
+              New Password
+            </label>
+            <input
+              id="new-password"
+              type="password"
+              bind:value={newPassword}
+              class="w-full px-3 py-2 border border-gray-700 rounded-md bg-gray-900 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter new password"
+            />
+          </div>
+          
+          <div>
+            <label for="confirm-password" class="block text-sm font-medium text-gray-300 mb-1">
+              Confirm New Password
+            </label>
+            <input
+              id="confirm-password"
+              type="password"
+              bind:value={confirmPassword}
+              class="w-full px-3 py-2 border border-gray-700 rounded-md bg-gray-900 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Confirm new password"
+            />
+          </div>
+          
+          {#if passwordError}
+            <div class="text-red-500 text-sm">
+              {passwordError}
+            </div>
+          {/if}
+          
+          {#if passwordSuccess}
+            <div class="text-green-500 text-sm">
+              {passwordSuccess}
+            </div>
+          {/if}
+          
+          <button
+            type="submit"
+            disabled={isPasswordLoading}
+            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {#if isPasswordLoading}
+              <span class="inline-block mr-2">
+                <svg class="animate-spin h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              </span>
+              Updating...
+            {:else}
+              Update Password
+            {/if}
+          </button>
+        </form>
+      </div>
+      
+      <!-- Cloud Provider Credentials -->
+      <div class="bg-gray-800 rounded-lg p-6 mb-8">
+        <h2 class="text-2xl font-semibold mb-4">Cloud Provider Credentials</h2>
+        
+        {#if loadingSecrets}
+          <div class="flex justify-center py-8">
+            <svg class="animate-spin h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          </div>
+        {:else}
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- AWS Credentials -->
+            <div class="bg-gray-700 rounded-lg p-5 flex flex-col h-full" style="min-height: 350px;">
+              <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-medium">AWS Credentials</h3>
+                <span class={`${secretsStatus.aws ? "bg-green-500" : "bg-gray-500"} px-2 py-1 rounded-full text-xs font-semibold`}>
+                  {secretsStatus.aws ? "Configured" : "Not Configured"}
+                </span>
+              </div>
+              
+              <form on:submit|preventDefault={handleAwsSecretsUpdate} class="flex flex-col flex-grow">
+                <div class="space-y-4 flex-grow">
+                  <div>
+                    <label for="aws-access-key" class="block text-sm font-medium text-gray-300 mb-1">
+                      Access Key
+                    </label>
+                    <input
+                      id="aws-access-key"
+                      type="text"
+                      bind:value={awsAccessKey}
+                      class="w-full px-3 py-2 border border-gray-600 rounded-md bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Enter AWS Access Key"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label for="aws-secret-key" class="block text-sm font-medium text-gray-300 mb-1">
+                      Secret Key
+                    </label>
+                    <input
+                      id="aws-secret-key"
+                      type="password"
+                      bind:value={awsSecretKey}
+                      class="w-full px-3 py-2 border border-gray-600 rounded-md bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Enter AWS Secret Key"
+                    />
+                  </div>
+                  
+                  {#if awsError}
+                    <div class="text-red-500 text-sm">
+                      {awsError}
+                    </div>
+                  {/if}
+                  
+                  {#if awsSuccess}
+                    <div class="text-green-500 text-sm">
+                      {awsSuccess}
+                    </div>
+                  {/if}
+                </div>
+                
+                <div class="mt-auto pt-4">
+                  <button
+                    type="submit"
+                    disabled={isAwsLoading}
+                    class="w-full px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {#if isAwsLoading}
+                      <span class="inline-block mr-2">
+                        <svg class="animate-spin h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                      </span>
+                      Updating...
+                    {:else}
+                      {secretsStatus.aws ? "Update AWS Credentials" : "Set AWS Credentials"}
+                    {/if}
+                  </button>
+                </div>
+              </form>
+            </div>
+            
+            <!-- Azure Credentials -->
+            <div class="bg-gray-700 rounded-lg p-5 flex flex-col h-full" style="min-height: 350px;">
+              <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-medium">Azure Credentials</h3>
+                <span class={`${secretsStatus.azure ? "bg-green-500" : "bg-gray-500"} px-2 py-1 rounded-full text-xs font-semibold`}>
+                  {secretsStatus.azure ? "Configured" : "Not Configured"}
+                </span>
+              </div>
+              
+              <form on:submit|preventDefault={handleAzureSecretsUpdate} class="flex flex-col flex-grow">
+                <div class="space-y-4 flex-grow">
+                  <div>
+                    <label for="azure-client-id" class="block text-sm font-medium text-gray-300 mb-1">
+                      Client ID
+                    </label>
+                    <input
+                      id="azure-client-id"
+                      type="text"
+                      bind:value={azureClientId}
+                      class="w-full px-3 py-2 border border-gray-600 rounded-md bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Enter Azure Client ID"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label for="azure-client-secret" class="block text-sm font-medium text-gray-300 mb-1">
+                      Client Secret
+                    </label>
+                    <input
+                      id="azure-client-secret"
+                      type="password"
+                      bind:value={azureClientSecret}
+                      class="w-full px-3 py-2 border border-gray-600 rounded-md bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Enter Azure Client Secret"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label for="azure-tenant-id" class="block text-sm font-medium text-gray-300 mb-1">
+                      Tenant ID
+                    </label>
+                    <input
+                      id="azure-tenant-id"
+                      type="text"
+                      bind:value={azureTenantId}
+                      class="w-full px-3 py-2 border border-gray-600 rounded-md bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Enter Azure Tenant ID"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label for="azure-subscription-id" class="block text-sm font-medium text-gray-300 mb-1">
+                      Subscription ID
+                    </label>
+                    <input
+                      id="azure-subscription-id"
+                      type="text"
+                      bind:value={azureSubscriptionId}
+                      class="w-full px-3 py-2 border border-gray-600 rounded-md bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Enter Azure Subscription ID"
+                    />
+                  </div>
+                  
+                  {#if azureError}
+                    <div class="text-red-500 text-sm">
+                      {azureError}
+                    </div>
+                  {/if}
+                  
+                  {#if azureSuccess}
+                    <div class="text-green-500 text-sm">
+                      {azureSuccess}
+                    </div>
+                  {/if}
+                </div>
+                
+                <div class="mt-auto pt-4">
+                  <button
+                    type="submit"
+                    disabled={isAzureLoading}
+                    class="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {#if isAzureLoading}
+                      <span class="inline-block mr-2">
+                        <svg class="animate-spin h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                      </span>
+                      Updating...
+                    {:else}
+                      {secretsStatus.azure ? "Update Azure Credentials" : "Set Azure Credentials"}
+                    {/if}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        {/if}
+      </div>
+    </div>
+  </div>
+</AuthGuard>
