@@ -5,7 +5,7 @@
     
     // VPC form data
     let name = '';
-    let cidr = '192.168.0.0/16';
+    let cidr = '';
     
     // List of VPCs already added
     let vpcs: TemplateVPC[] = [];
@@ -77,7 +77,7 @@
             
             // Reset form
             name = '';
-            cidr = '192.168.0.0/16';
+            cidr = '';
         }
     }
     
@@ -161,6 +161,9 @@
                     class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
                     placeholder="e.g., 192.168.0.0/16"
                 />
+                <p class="mt-1 text-xs text-gray-500">
+                    Recommended format: 192.168.0.0/16
+                </p>
                 {#if errors.cidr}
                     <p class="mt-1 text-sm text-red-600">{errors.cidr}</p>
                 {/if}
