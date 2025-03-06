@@ -5,6 +5,7 @@
   import AuthGuard from '$lib/components/AuthGuard.svelte';
   import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
   import { fade } from 'svelte/transition';
+  import { goto } from '$app/navigation';
   
   // Password form
   let currentPassword = '';
@@ -308,7 +309,17 @@
 <AuthGuard requireAuth={true} redirectTo="/login">
   <div class="min-h-screen bg-gray-900 text-white p-8 relative">
     <div class="max-w-4xl mx-auto">
-      <h1 class="text-3xl font-bold mb-8">Account Settings</h1>
+      <div class="mb-8">
+        <div class="mb-4">
+          <a href="/" class="text-blue-500 hover:text-blue-700 flex items-center w-fit">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Back
+          </a>
+        </div>
+        <h1 class="text-3xl font-bold">Account Settings</h1>
+      </div>
       
       <!-- User info -->
       <div class="bg-gray-800 rounded-lg p-6 mb-8">
