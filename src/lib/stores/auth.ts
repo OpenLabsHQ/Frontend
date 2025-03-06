@@ -68,6 +68,14 @@ const createAuthStore = () => {
       });
     },
     
+    // Update authentication state without affecting user data
+    updateAuthState: (isAuthenticated: boolean) => {
+      update(state => ({
+        ...state,
+        isAuthenticated
+      }));
+    },
+    
     // Update user information
     updateUser: (userData = {}) => {
       update(state => ({

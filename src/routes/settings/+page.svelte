@@ -311,12 +311,15 @@
     <div class="max-w-4xl mx-auto">
       <div class="mb-8">
         <div class="mb-4">
-          <a href="/" class="text-blue-500 hover:text-blue-700 flex items-center w-fit">
+          <button 
+            on:click={() => window.history.back()} 
+            class="text-blue-500 hover:text-blue-700 flex items-center w-fit bg-transparent border-none cursor-pointer"
+          >
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
             Back
-          </a>
+          </button>
         </div>
         <h1 class="text-3xl font-bold">Account Settings</h1>
       </div>

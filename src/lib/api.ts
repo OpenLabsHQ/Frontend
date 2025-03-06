@@ -176,7 +176,12 @@ export const authApi = {
         password: credentials.password
       };
       
-      auth.logout();
+      // Clear previous auth state but don't redirect
+      // This was calling auth.logout() which might trigger a redirect
+      auth.updateUser({});
+      
+      // Set authenticated to false without triggering navigation
+      auth.updateAuthState(false);
 
       const response = await fetch(`${API_URL}/api/v1/auth/login`, {
         method: 'POST',
@@ -194,6 +199,15 @@ export const authApi = {
           const errorData = await response.json();
           console.error('Login error response:', errorData);
           errorMsg = errorData.detail || errorMsg;
+          
+          // Improved error messages for common login failures
+          if (response.status === 401) {
+            errorMsg = 'Invalid email or password. Please try again.';
+          } else if (response.status === 403) {
+            errorMsg = 'Your account is locked. Please contact support.';
+          } else if (errorData.detail) {
+            errorMsg = errorData.detail;
+          }
         } catch (e) {
           const errorText = await response.text();
           if (errorText) errorMsg = errorText;

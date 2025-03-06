@@ -30,17 +30,27 @@
       const result = await authApi.login({ email, password });
       
       if (result.error) {
-        error = result.error;
-        return;
+        console.log('Login error detected:', result.error);
+        // Display the server error message and prevent redirection
+        error = result.error || 'Invalid email or password';
+        isLoading = false;
+        return; // Important - stop execution here
       }
       
+      // Only set auth and redirect if login was successful
       if (result.data) {       
+        console.log('Login successful, redirecting...');
         auth.setAuth();
         goto('/ranges');
+      } else {
+        // Fallback error if no data and no error
+        console.log('No data returned from login');
+        error = 'Login failed. Please check your credentials.';
+        isLoading = false;
       }
     } catch (err) {
+      console.error('Login exception:', err);
       error = err instanceof Error ? err.message : 'Login failed';
-    } finally {
       isLoading = false;
     }
   }
@@ -96,8 +106,13 @@
         </div>
 
         {#if error}
-          <div class="text-red-500 text-sm text-center">
-            {error}
+          <div class="bg-red-900/50 border border-red-500 text-red-300 px-4 py-3 rounded-md text-sm mb-4">
+            <div class="flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+              </svg>
+              {error}
+            </div>
           </div>
         {/if}
 
