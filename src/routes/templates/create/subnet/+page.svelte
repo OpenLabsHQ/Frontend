@@ -9,7 +9,7 @@
     
     // Subnet form data
     let name = '';
-    let cidr = '192.168.1.0/24';
+    let cidr = '';
     
     // Form validation
     let errors = {
@@ -17,6 +17,115 @@
         cidr: '',
         vpc: ''
     };
+    
+    // Helper function to generate a subnet CIDR from VPC CIDR
+    function suggestSubnetCidr(vpcCidr: string, existingSubnets: TemplateSubnet[] = []): string {
+        try {
+            // Parse the VPC CIDR (e.g., "192.168.0.0/16")
+            const [baseIp, maskStr] = vpcCidr.split('/');
+            const mask = parseInt(maskStr);
+            
+            if (mask >= 24) {
+                // If the VPC mask is already /24 or smaller, we can't create smaller subnets
+                return vpcCidr;
+            }
+            
+            // For a VPC like 192.168.0.0/16, we want to suggest sequential subnets
+            // starting from 192.168.1.0/24 (not 192.168.0.0/24)
+            const ipParts = baseIp.split('.').map(p => parseInt(p));
+            
+            // If there are existing subnets, find the next available subnet number
+            let nextSubnetNum = 1; // Start from 1 instead of 0
+            
+            if (existingSubnets.length > 0 && mask === 16) {
+                // For /16 VPCs, find the next available third octet
+                // (e.g., for 192.168.0.0/16, look at 192.168.X.0/24)
+                const usedThirdOctets = existingSubnets
+                    .map(subnet => {
+                        const parts = subnet.cidr.split('.');
+                        return parts.length >= 3 ? parseInt(parts[2]) : -1;
+                    })
+                    .filter(num => num >= 0);
+                
+                // Find the smallest unused number starting from 1
+                for (let i = 1; i <= 255; i++) {
+                    if (!usedThirdOctets.includes(i)) {
+                        nextSubnetNum = i;
+                        break;
+                    }
+                }
+            }
+            
+            // Check if we're out of available subnets
+            if (nextSubnetNum > 255) {
+                // If we've used all possible subnets, return a default
+                return '192.168.1.0/24';
+            }
+            
+            if (mask === 16) {
+                // For a /16 VPC like 192.168.0.0/16, suggest 192.168.X.0/24
+                return `${ipParts[0]}.${ipParts[1]}.${nextSubnetNum}.0/24`;
+            }
+            
+            // For other masks, use the base IP with a /24 mask but increment the third octet
+            const thirdOctet = ipParts.length > 2 ? Math.min(ipParts[2] + 1, 255) : 1;
+            return `${ipParts[0]}.${ipParts[1]}.${thirdOctet}.0/24`;
+        } catch (e) {
+            // If there's any parsing error, return a safe default
+            return '192.168.1.0/24';
+        }
+    }
+    
+    // Function to check if a subnet CIDR is valid within a VPC CIDR
+    function isSubnetCidrValid(subnetCidr: string, vpcCidr: string): boolean {
+        try {
+            // Parse CIDRs
+            const [subnetIp, subnetMaskStr] = subnetCidr.split('/');
+            const [vpcIp, vpcMaskStr] = vpcCidr.split('/');
+            
+            const subnetMask = parseInt(subnetMaskStr);
+            const vpcMask = parseInt(vpcMaskStr);
+            
+            // Subnet mask must be larger (more specific) than VPC mask
+            if (subnetMask <= vpcMask) {
+                return false;
+            }
+            
+            // Convert IPs to binary representation for comparison
+            const subnetIpParts = subnetIp.split('.').map(p => parseInt(p));
+            const vpcIpParts = vpcIp.split('.').map(p => parseInt(p));
+            
+            // Check if the subnet is within the VPC range
+            // For the common network bits (determined by VPC mask),
+            // the subnet IP must match the VPC IP
+            const commonOctets = Math.floor(vpcMask / 8);
+            
+            // Check full octets
+            for (let i = 0; i < commonOctets; i++) {
+                if (subnetIpParts[i] !== vpcIpParts[i]) {
+                    return false;
+                }
+            }
+            
+            // Check partial octet if needed
+            const remainingBits = vpcMask % 8;
+            if (remainingBits > 0) {
+                const octetIndex = commonOctets;
+                
+                // Create a mask for the remaining bits
+                const mask = 256 - (1 << (8 - remainingBits));
+                
+                // Apply the mask and compare
+                if ((subnetIpParts[octetIndex] & mask) !== (vpcIpParts[octetIndex] & mask)) {
+                    return false;
+                }
+            }
+            
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }
     
     // Initialize from store
     onMount(() => {
@@ -27,11 +136,22 @@
         }
         
         vpcs = [...$templateWizard.vpcs];
+        
+        // Set initial CIDR based on first VPC
+        if (vpcs.length > 0) {
+            cidr = suggestSubnetCidr(vpcs[0].cidr, vpcs[0].subnets);
+        }
     });
     
     // Get the currently selected VPC
     $: selectedVpc = vpcs[selectedVpcIndex] || null;
     $: subnets = selectedVpc ? [...selectedVpc.subnets] : [];
+    
+    // Update suggested CIDR when VPC changes
+    $: if (selectedVpc) {
+        // Update with next available subnet in the VPC
+        cidr = suggestSubnetCidr(selectedVpc.cidr, selectedVpc.subnets);
+    }
     
     function validateForm() {
         let isValid = true;
@@ -61,6 +181,9 @@
         } else if (!cidrPattern.test(cidr)) {
             errors.cidr = 'CIDR must be in format like 192.168.1.0/24';
             isValid = false;
+        } else if (selectedVpc && !isSubnetCidrValid(cidr, selectedVpc.cidr)) {
+            errors.cidr = `Subnet CIDR must be within the VPC CIDR (${selectedVpc.cidr})`;
+            isValid = false;
         }
         
         // Check for duplicate subnet names within the VPC
@@ -89,7 +212,7 @@
             
             // Reset form
             name = '';
-            cidr = '192.168.1.0/24';
+            cidr = selectedVpc ? suggestSubnetCidr(selectedVpc.cidr, selectedVpc.subnets) : '';
         }
     }
     
@@ -200,6 +323,8 @@
                 {/if}
                 <p class="mt-1 text-xs text-gray-500">
                     Must be contained within the VPC CIDR ({selectedVpc?.cidr || 'N/A'})
+                    {#if selectedVpc && selectedVpc.subnets.length > 0}
+                    {/if}
                 </p>
             </div>
         </div>
