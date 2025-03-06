@@ -445,7 +445,7 @@
                 </svg>
                 <span class="font-semibold">End-to-End Encrypted</span>
               </div>
-              <p>Your credentials are encrypted in your browser before being sent to the server. Even the person hosting OpenLabs cannot access your cloud provider credentials.</p>
+              <p>Your credentials are encrypted before entering the database and are only decrypted when needed for a range. Even the person hosting OpenLabs cannot access your cloud provider credentials.</p>
               <div class="tooltip-arrow absolute w-2 h-2 bg-gray-900 transform rotate-45" style="top: -4px; right: 10px;"></div>
             </div>
           </div>
