@@ -121,20 +121,8 @@
       const result = await userApi.getUserSecrets()
 
       if (result.data) {
-        // Format created_at dates to be more human-readable
-        const formatDate = (dateString) => {
-          if (!dateString) return null
-          try {
-            return new Date(dateString).toLocaleString()
-          } catch (e) {
-            console.error('Error formatting date:', dateString, e)
-            return dateString // Return original string if it can't be formatted
-          }
-        }
-
         const awsDate = result.data.aws?.created_at
         const azureDate = result.data.azure?.created_at
-
 
         secretsStatus = {
           aws: {
