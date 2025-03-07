@@ -157,6 +157,82 @@ This project uses TailwindCSS for styling. The configuration is in `tailwind.con
 
 The network visualization is built with vis.js and is located in `src/lib/components/NetworkGraph.svelte`.
 
+### Testing
+
+The project uses [Vitest](https://vitest.dev/) for unit and component testing. All tests are located in the `tests` directory with a structure that mirrors the source code.
+
+```bash
+# Run tests once
+bun run test
+
+# Run tests in watch mode (re-run on file changes)
+bun run test:watch
+
+# Run tests with coverage report
+bun run test:coverage
+```
+
+Test files follow the naming convention `*.test.ts` and are organized to match the source file structure:
+
+```
+tests/
+├── lib/             # Tests for lib files
+│   ├── api/         # API tests
+│   ├── components/  # Component tests
+│   └── stores/      # Store tests
+└── routes/          # Route tests
+```
+
+Component tests use `@testing-library/svelte` for rendering and interacting with Svelte components in tests.
+
+
+### Linting
+
+The project uses ESLint for code quality checks with configurations for JavaScript, TypeScript, and Svelte files. The configuration is in `eslint.config.js`.
+
+```bash
+# Run linting
+bun run lint
+```
+
+ESLint is configured with:
+- TypeScript integration
+- Svelte-specific rules
+- Prettier integration to avoid conflicts
+
+### Code Formatting
+
+The project uses Prettier for consistent code formatting across all files. Prettier is configured to work with Svelte and TailwindCSS through plugins.
+
+```bash
+# Format all files
+bun run format
+
+# Check if files are properly formatted (useful in CI)
+bun run format:check
+```
+
+Prettier configuration (`.prettierrc`):
+
+```json
+{
+  "semi": false,
+  "singleQuote": true,
+  "trailingComma": "es5",
+  "tabWidth": 2,
+  "useTabs": false,
+  "plugins": ["prettier-plugin-svelte", "prettier-plugin-tailwindcss"]
+}
+```
+
+Prettier will automatically format:
+- JavaScript and TypeScript files
+- Svelte components
+- CSS files
+- HTML files
+
+It's recommended to set up your editor to format on save using the project's Prettier configuration.
+
 ### API Proxy Configuration
 
 The API proxy (`proxy.js`) can be customized for different environments:
@@ -181,11 +257,22 @@ For production deployments, you might want to:
 Frontend/
 ├── src/
 │   ├── lib/             # Reusable components
-│   │   └── components/  # UI components
+│   │   ├── components/  # UI components
+│   │   ├── stores/      # Svelte stores
+│   │   └── types/       # TypeScript type definitions
 │   ├── routes/          # SvelteKit routes
 │   └── app.postcss      # Global styles
 ├── static/              # Static assets
 │   └── images/          # Images for network visualization
+├── tests/               # Test files
+│   ├── lib/             # Tests for lib files
+│   │   ├── api/         # API tests
+│   │   ├── components/  # Component tests
+│   │   └── stores/      # Store tests
+│   ├── routes/          # Route tests
+│   └── setup.ts         # Test setup and mocks
+├── eslint.config.js     # ESLint configuration
 ├── tailwind.config.js   # TailwindCSS configuration
-└── svelte.config.js     # SvelteKit configuration
+├── svelte.config.js     # SvelteKit configuration
+└── vitest.config.ts     # Vitest configuration
 ```
