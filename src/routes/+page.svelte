@@ -2,6 +2,8 @@
   import { onMount } from 'svelte'
   import { auth } from '$lib/stores/auth'
   import { goto } from '$app/navigation'
+  
+  let isLoading = true;
 
   onMount(async () => {
     // If user is already authenticated, redirect to ranges
