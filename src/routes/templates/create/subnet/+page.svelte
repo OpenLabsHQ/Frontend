@@ -323,8 +323,6 @@
                 {/if}
                 <p class="mt-1 text-xs text-gray-500">
                     Must be contained within the VPC CIDR ({selectedVpc?.cidr || 'N/A'})
-                    {#if selectedVpc && selectedVpc.subnets.length > 0}
-                    {/if}
                 </p>
             </div>
         </div>
