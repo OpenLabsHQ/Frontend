@@ -325,20 +325,20 @@
             <div class="mt-3 flex justify-end">
                 <button 
                     type="button"
-                    class="text-blue-600 hover:text-blue-800 text-sm flex items-center"
+                    class="flex items-center px-3 py-1 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
                     on:click={() => showDuplicateOptions = !showDuplicateOptions}
                 >
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-purple-600" viewBox="0 0 20 20" fill="currentColor">
                         <path d="M7 9a2 2 0 012-2h6a2 2 0 012 2v6a2 2 0 01-2 2H9a2 2 0 01-2-2V9z" />
                         <path d="M5 3a2 2 0 00-2 2v6a2 2 0 002 2V5h8a2 2 0 00-2-2H5z" />
                     </svg>
-                    {showDuplicateOptions ? 'Hide Duplicate Options' : 'Duplicate Hosts from Another Subnet'}
+                    {showDuplicateOptions ? 'Hide Duplicate Options' : 'Duplicate Hosts'}
                 </button>
             </div>
             
             {#if showDuplicateOptions}
-                <div class="mt-3 p-4 bg-blue-50 rounded-md border border-blue-200">
-                    <h4 class="text-sm font-medium text-blue-700 mb-2">Duplicate Hosts from Another Subnet</h4>
+                <div class="mt-3 p-4 bg-white rounded-md border border-gray-200 shadow-sm">
+                    <h4 class="text-sm font-medium text-gray-700 mb-2">Duplicate Hosts from Another Subnet</h4>
                     
                     <div class="mb-3">
                         <div class="flex items-center gap-2 mb-2">
@@ -348,37 +348,65 @@
                             <h5 class="text-sm font-medium text-blue-800">Copy From:</h5>
                         </div>
                         
-                        <div class="grid md:grid-cols-2 gap-4 mb-3 pl-7">
-                            <!-- Source VPC Selection -->
-                            <div>
-                                <label for="source-vpc-select" class="block text-sm font-medium text-gray-700 mb-1">VPC</label>
-                                <select 
-                                    id="source-vpc-select" 
-                                    bind:value={sourceVpcIndex}
-                                    on:change={handleSourceVpcChange}
-                                    class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
-                                >
-                                    {#each vpcs as vpc, index}
-                                        <option value={index}>{vpc.name} ({vpc.cidr})</option>
-                                    {/each}
-                                </select>
-                            </div>
-                            
-                            <!-- Source Subnet Selection -->
-                            <div>
-                                <label for="source-subnet-select" class="block text-sm font-medium text-gray-700 mb-1">Subnet</label>
-                                <select 
-                                    id="source-subnet-select" 
-                                    bind:value={sourceSubnetIndex}
-                                    class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
-                                    disabled={!sourceSubnets.length}
-                                >
-                                    {#each sourceSubnets as subnet, index}
-                                        <option value={index}>{subnet.name} ({subnet.hosts.length} host{subnet.hosts.length !== 1 ? 's' : ''})</option>
-                                    {/each}
-                                </select>
-                                {#if !sourceSubnets.length}
-                                    <p class="mt-1 text-sm text-amber-600">This VPC has no subnets.</p>
+                        <div class="pl-7">
+                            <div class="bg-blue-50 border border-blue-100 rounded-md p-3 mb-3">
+                                <div class="grid md:grid-cols-2 gap-4">
+                                    <!-- Source VPC Selection -->
+                                    <div>
+                                        <div class="flex items-center mb-1">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-700 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                                            </svg>
+                                            <label for="source-vpc-select" class="text-sm font-medium text-blue-800">VPC</label>
+                                        </div>
+                                        <select 
+                                            id="source-vpc-select" 
+                                            bind:value={sourceVpcIndex}
+                                            on:change={handleSourceVpcChange}
+                                            class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                                        >
+                                            {#each vpcs as vpc, index}
+                                                <option value={index}>{vpc.name} ({vpc.cidr})</option>
+                                            {/each}
+                                        </select>
+                                    </div>
+                                    
+                                    <!-- Source Subnet Selection -->
+                                    <div>
+                                        <div class="flex items-center mb-1">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-700 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                                <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                                            </svg>
+                                            <label for="source-subnet-select" class="text-sm font-medium text-blue-800">Subnet</label>
+                                        </div>
+                                        <select 
+                                            id="source-subnet-select" 
+                                            bind:value={sourceSubnetIndex}
+                                            class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                                            disabled={!sourceSubnets.length}
+                                        >
+                                            {#each sourceSubnets as subnet, index}
+                                                <option value={index}>{subnet.name} ({subnet.hosts.length} host{subnet.hosts.length !== 1 ? 's' : ''})</option>
+                                            {/each}
+                                        </select>
+                                        {#if !sourceSubnets.length}
+                                            <p class="mt-1 text-sm text-amber-600">This VPC has no subnets.</p>
+                                        {/if}
+                                    </div>
+                                </div>
+                                
+                                {#if sourceHosts.length > 0}
+                                    <div class="mt-2 pt-2 border-t border-blue-100">
+                                        <div class="flex items-start">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-700 mr-2 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                                                <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
+                                            </svg>
+                                            <div>
+                                                <span class="text-sm font-medium text-blue-800">Hosts:</span>
+                                                <span class="ml-1 text-gray-700">{sourceHosts.length} available</span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 {/if}
                             </div>
                         </div>
@@ -393,23 +421,47 @@
                         </div>
                         
                         <div class="pl-7">
-                            <p class="text-sm text-gray-700">
-                                <span class="font-medium">{selectedVpc?.name}</span> / <span class="font-medium">{selectedSubnet?.name}</span>
-                            </p>
+                            <div class="bg-green-50 border border-green-100 rounded-md p-3">
+                                <div class="flex items-center mb-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-green-700 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                                    </svg>
+                                    <span class="font-medium text-green-800">VPC:</span>
+                                    <span class="ml-2 text-gray-700">{selectedVpc?.name} ({selectedVpc?.cidr})</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-green-700 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                                    </svg>
+                                    <span class="font-medium text-green-800">Subnet:</span>
+                                    <span class="ml-2 text-gray-700">{selectedSubnet?.name} ({selectedSubnet?.cidr})</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
                     <div class="mt-4 border-t border-blue-200 pt-3">
                         {#if sourceHosts.length > 0}
                             <div class="flex flex-col items-center">
-                                <p class="text-sm text-gray-600 mb-3">
-                                    <strong>{sourceHosts.length}</strong> host{sourceHosts.length !== 1 ? 's' : ''} will be copied from 
-                                    <strong>{sourceSubnet?.name}</strong> to <strong>{selectedSubnet?.name}</strong>
-                                </p>
+                                <div class="flex flex-col items-center mb-3">
+                                    <div class="flex items-center text-gray-600 text-sm">
+                                        <span class="font-medium text-blue-700">{sourceSubnet?.name}</span>
+                                        <span class="mx-2">→</span>
+                                        <span class="font-medium text-green-700">{selectedSubnet?.name}</span>
+                                    </div>
+                                    <div class="mt-1 flex items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                            <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
+                                        </svg>
+                                        <span class="text-sm text-gray-600">
+                                            <strong>{sourceHosts.length}</strong> host{sourceHosts.length !== 1 ? 's' : ''} will be copied
+                                        </span>
+                                    </div>
+                                </div>
                                 
                                 <button 
                                     type="button" 
-                                    class="flex items-center px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-green-600 hover:bg-green-700"
+                                    class="flex items-center px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-purple-600 hover:bg-purple-700"
                                     on:click={duplicateHosts}
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
