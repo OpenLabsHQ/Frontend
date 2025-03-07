@@ -51,6 +51,13 @@
                 // Position the line
                 line.style.left = `${lineLeft}px`;
                 line.style.width = `${lineWidth}px`;
+                
+                // For active step, set a data attribute to handle the half-line styling
+                if (i === currentStepIndex) {
+                    line.setAttribute('data-half-width', (lineWidth / 2) + 'px');
+                } else {
+                    line.removeAttribute('data-half-width');
+                }
             }
         }
     }
@@ -145,7 +152,29 @@
     }
     
     .step-line.step-active {
+        background-color: transparent;
+        position: relative;
+        overflow: visible;
+    }
+    
+    .step-line.step-active::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 50%;
+        height: 100%;
         background-color: rgb(59, 130, 246);
+    }
+    
+    .step-line.step-active::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 50%;
+        height: 100%;
+        background-color: rgb(209, 213, 219);
     }
     
     .step-line.step-completed {
