@@ -26,6 +26,7 @@
 {#if overlay}
   <div
     class="bg-opacity-70 absolute inset-0 z-10 flex items-center justify-center bg-gray-50"
+    data-testid="spinner-container"
   >
     <div class="text-center">
       <svg
@@ -46,6 +47,7 @@
           class="opacity-75"
           fill="currentColor"
           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+          data-testid="spinner-path"
         ></path>
       </svg>
       {#if message}
@@ -54,7 +56,7 @@
     </div>
   </div>
 {:else}
-  <div class="flex items-center justify-center">
+  <div class="flex items-center justify-center" data-testid="spinner-container">
     <div class="text-center">
       <svg
         class="animate-spin {spinnerClasses} mx-auto"
@@ -74,6 +76,7 @@
           class="opacity-75"
           fill="currentColor"
           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+          data-testid="spinner-path"
         ></path>
       </svg>
       {#if message}

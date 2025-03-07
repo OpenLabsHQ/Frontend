@@ -119,7 +119,6 @@
     try {
       // Then load secrets status
       const result = await userApi.getUserSecrets()
-      console.log('Secrets data:', result.data)
 
       if (result.data) {
         // Format created_at dates to be more human-readable
@@ -136,8 +135,6 @@
         const awsDate = result.data.aws?.created_at
         const azureDate = result.data.azure?.created_at
 
-        console.log('AWS created_at:', awsDate, formatDate(awsDate))
-        console.log('Azure created_at:', azureDate, formatDate(azureDate))
 
         secretsStatus = {
           aws: {

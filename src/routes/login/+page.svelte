@@ -30,7 +30,6 @@
       const result = await authApi.login({ email, password })
 
       if (result.error) {
-        console.log('Login error detected:', result.error)
         // Display the server error message and prevent redirection
         error = result.error || 'Invalid email or password'
         isLoading = false
@@ -39,12 +38,10 @@
 
       // Only set auth and redirect if login was successful
       if (result.data) {
-        console.log('Login successful, redirecting...')
         auth.setAuth()
         goto('/ranges')
       } else {
         // Fallback error if no data and no error
-        console.log('No data returned from login')
         error = 'Login failed. Please check your credentials.'
         isLoading = false
       }
