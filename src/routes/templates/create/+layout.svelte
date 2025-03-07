@@ -134,12 +134,12 @@
         left: 0;
         right: 0;
         width: 100%;
-        height: 2px;
+        height: 4px;
         z-index: 0;
     }
     
     .step-line {
-        height: 2px;
+        height: 4px;
         position: absolute;
         top: 0;
     }
