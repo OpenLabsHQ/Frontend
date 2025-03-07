@@ -3,7 +3,7 @@
     import { goto } from '$app/navigation';
     import Sidebar from "$lib/components/Sidebar.svelte";
     import { templateWizard } from '$lib/stores/template-wizard';
-    import { onMount } from 'svelte';
+    import { onMount, afterUpdate } from 'svelte';
     import { auth } from '$lib/stores/auth';
 
     // Define the wizard steps
@@ -19,22 +19,83 @@
     $: currentPath = $page.url.pathname;
     $: currentStepIndex = steps.findIndex(step => step.path === currentPath);
 
-    // Guard against unauthenticated access
+    // Function to update connecting lines
+    function updateStepLines() {
+        const stepElements = document.querySelectorAll('.step-item');
+        const stepLines = document.querySelectorAll('.step-line');
+        const linesContainer = document.querySelector('.step-lines-container');
+        
+        if (!stepElements.length || !stepLines.length || !linesContainer) return;
+        
+        const containerRect = linesContainer.getBoundingClientRect();
+        
+        // Calculate positions for all lines
+        for (let i = 0; i < stepLines.length; i++) {
+            const currentElement = stepElements[i];
+            const nextElement = stepElements[i + 1];
+            const line = stepLines[i];
+            
+            if (currentElement && nextElement) {
+                // Get positions of the circle centers
+                const rect1 = currentElement.querySelector('.step-circle').getBoundingClientRect();
+                const rect2 = nextElement.querySelector('.step-circle').getBoundingClientRect();
+                
+                // Calculate center points
+                const center1X = rect1.left + (rect1.width / 2);
+                const center2X = rect2.left + (rect2.width / 2);
+                
+                // Calculate line position and width
+                const lineLeft = center1X - containerRect.left;
+                const lineWidth = center2X - center1X;
+                
+                // Position the line
+                line.style.left = `${lineLeft}px`;
+                line.style.width = `${lineWidth}px`;
+            }
+        }
+    }
+    
+    // Update lines when component is mounted and on window resize
+    let resizeTimer;
     onMount(() => {
         if (!$auth.isAuthenticated) {
             goto('/login');
         }
+        
+        updateStepLines();
+        
+        window.addEventListener('resize', () => {
+            // Debounce the resize event
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                updateStepLines();
+            }, 100);
+        });
+        
+        return () => {
+            window.removeEventListener('resize', updateStepLines);
+            clearTimeout(resizeTimer);
+        };
     });
+    
+    // Also update after the component has been updated
+    afterUpdate(updateStepLines);
 </script>
 
 <style>
-    .step-indicator {
-        display: flex;
-        align-items: center;
+    .step-container {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        width: 100%;
+        max-width: 1000px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 2;
     }
     
-    .step {
+    .step-item {
         display: flex;
+        flex-direction: column;
         align-items: center;
         position: relative;
     }
@@ -48,7 +109,8 @@
         height: 2rem;
         font-size: 0.875rem;
         font-weight: 500;
-        z-index: 1;
+        z-index: 2;
+        margin-bottom: 0.75rem;
     }
     
     .step-active .step-circle {
@@ -66,22 +128,31 @@
         color: rgb(107, 114, 128);
     }
     
-    .step-line {
-        width: 5rem;
-        height: 0.25rem;
-        margin: 0;
-        position: relative;
+    .step-lines-container {
+        position: absolute;
+        top: 1rem;
+        left: 0;
+        right: 0;
+        width: 100%;
+        height: 2px;
+        z-index: 0;
     }
     
-    .step-active .step-line {
+    .step-line {
+        height: 2px;
+        position: absolute;
+        top: 0;
+    }
+    
+    .step-line.step-active {
         background-color: rgb(59, 130, 246);
     }
     
-    .step-completed .step-line {
+    .step-line.step-completed {
         background-color: rgb(34, 197, 94);
     }
     
-    .step-pending .step-line {
+    .step-line.step-pending {
         background-color: rgb(209, 213, 219);
     }
     
@@ -184,29 +255,36 @@
         <div class="bg-white shadow-sm p-6 border-b sticky top-0 z-5">
             <h1 class="text-2xl font-bold mb-6">Create Range Template</h1>
             
-            <div class="step-indicator flex justify-center mb-4 w-full px-8">
-                {#each steps as step, i}
-                    <div class="step {i < currentStepIndex ? 'step-completed' : (i === currentStepIndex ? 'step-active' : 'step-pending')}">
-                        <div class="step-circle">
-                            {#if i < currentStepIndex}
-                                ✓
-                            {:else}
-                                {i + 1}
-                            {/if}
+            <div class="relative">
+                <!-- Step items container with aligned circles and titles -->
+                <div class="step-container mb-4">
+                    {#each steps as step, i}
+                        <div 
+                            class="step-item {i < currentStepIndex ? 'step-completed' : (i === currentStepIndex ? 'step-active' : 'step-pending')}"
+                            data-step={i}
+                        >
+                            <div class="step-circle">
+                                {#if i < currentStepIndex}
+                                    ✓
+                                {:else}
+                                    {i + 1}
+                                {/if}
+                            </div>
+                            <div class="text-sm {i === currentStepIndex ? 'font-semibold text-blue-600' : 'text-gray-600'}">
+                                {step.title}
+                            </div>
                         </div>
+                    {/each}
+                </div>
+                
+                <!-- Step lines container (positioned behind the circles) -->
+                <div class="step-lines-container">
+                    {#each steps as step, i}
                         {#if i < steps.length - 1}
-                            <div class="step-line"></div>
+                            <div class="step-line" class:step-completed={i < currentStepIndex} class:step-active={i === currentStepIndex} class:step-pending={i > currentStepIndex}></div>
                         {/if}
-                    </div>
-                {/each}
-            </div>
-            
-            <div class="flex justify-center text-sm text-gray-600 w-full">
-                {#each steps as step, i}
-                    <div class="px-3 {i === currentStepIndex ? 'font-semibold text-blue-600' : ''}">
-                        {step.title}
-                    </div>
-                {/each}
+                    {/each}
+                </div>
             </div>
         </div>
         
