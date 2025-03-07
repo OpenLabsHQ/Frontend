@@ -158,6 +158,17 @@
             {error}
           </div>
         {/if}
+        
+        <div class="bg-gray-800 border border-gray-700 rounded-md p-3 mt-1">
+          <div class="flex items-center text-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span class="text-gray-300">
+              We recommend using a strong password as it will be used to encrypt cloud provider secrets.
+            </span>
+          </div>
+        </div>
 
         <div>
           <button
