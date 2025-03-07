@@ -43,7 +43,13 @@
       const registerResult = await authApi.register({ name, email, password });
       
       if (registerResult.error) {
-        error = registerResult.error;
+        // Handle error object or string appropriately
+        if (typeof registerResult.error === 'object') {
+          // For validation errors (usually 422 responses)
+          error = JSON.stringify(registerResult.error);
+        } else {
+          error = registerResult.error;
+        }
         return;
       }
 

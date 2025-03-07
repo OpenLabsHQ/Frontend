@@ -241,15 +241,22 @@ export const authApi = {
       });
 
       if (!response.ok) {
-        let errorMsg = `Registration failed with status ${response.status}`;
         try {
           const errorData = await response.json();
-          errorMsg = errorData.detail || errorMsg;
+          
+          // For 422 validation errors, FastAPI returns detailed validation error objects
+          if (response.status === 422 && errorData.detail && Array.isArray(errorData.detail)) {
+            // Extract the validation message from the detail array
+            const validationErrors = errorData.detail.map((error: any) => error.msg);
+            return { error: validationErrors.join(', ') };
+          }
+          
+          // For other errors, use the detail field or default message
+          return { error: errorData.detail || `Registration failed with status ${response.status}` };
         } catch {
-          // Use the status message if we can't parse
+          // Use the status message if we can't parse the response
+          return { error: `Registration failed with status ${response.status}` };
         }
-        
-        return { error: errorMsg };
       }
 
       const data = await response.json();
