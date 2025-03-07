@@ -36,6 +36,7 @@
     .step {
         display: flex;
         align-items: center;
+        position: relative;
     }
     
     .step-circle {
@@ -47,6 +48,7 @@
         height: 2rem;
         font-size: 0.875rem;
         font-weight: 500;
+        z-index: 1;
     }
     
     .step-active .step-circle {
@@ -67,12 +69,16 @@
     .step-line {
         width: 5rem;
         height: 0.25rem;
-        margin-left: 0.5rem;
-        margin-right: 0.5rem;
+        margin: 0;
+        position: relative;
     }
     
-    .step-active .step-line, .step-completed .step-line {
+    .step-active .step-line {
         background-color: rgb(59, 130, 246);
+    }
+    
+    .step-completed .step-line {
+        background-color: rgb(34, 197, 94);
     }
     
     .step-pending .step-line {
@@ -189,7 +195,7 @@
                             {/if}
                         </div>
                         {#if i < steps.length - 1}
-                            <div class="step-line {i < currentStepIndex ? 'bg-blue-500' : 'bg-gray-300'}"></div>
+                            <div class="step-line"></div>
                         {/if}
                     </div>
                 {/each}
