@@ -158,6 +158,57 @@ function createTemplateWizardStore() {
                 }
                 return { ...template, vpcs };
             }),
+            
+        // Duplicate hosts from one subnet to another
+        duplicateHosts: (sourceVpcIndex: number, sourceSubnetIndex: number, targetVpcIndex: number, targetSubnetIndex: number) => 
+            update(template => {
+                const vpcs = [...template.vpcs];
+                
+                // Ensure source and target exist
+                if (!vpcs[sourceVpcIndex] || 
+                    !vpcs[sourceVpcIndex].subnets[sourceSubnetIndex] ||
+                    !vpcs[targetVpcIndex] || 
+                    !vpcs[targetVpcIndex].subnets[targetSubnetIndex]) {
+                    return template;
+                }
+                
+                // Get hosts to duplicate
+                const sourceHosts = vpcs[sourceVpcIndex].subnets[sourceSubnetIndex].hosts;
+                
+                // Get existing target hosts for hostname conflict checking
+                const targetSubnet = vpcs[targetVpcIndex].subnets[targetSubnetIndex];
+                const existingHostnames = new Set(targetSubnet.hosts.map(host => host.hostname));
+                
+                // Clone hosts with unique hostnames
+                const hostsToAdd = sourceHosts.map(host => {
+                    let newHostname = host.hostname;
+                    let counter = 1;
+                    
+                    // Ensure hostname is unique in target subnet
+                    while (existingHostnames.has(newHostname)) {
+                        newHostname = `${host.hostname}-copy${counter}`;
+                        counter++;
+                    }
+                    
+                    existingHostnames.add(newHostname);
+                    
+                    // Return a new host object with the updated hostname
+                    return {
+                        ...JSON.parse(JSON.stringify(host)), // Deep clone
+                        hostname: newHostname
+                    };
+                });
+                
+                // Add hosts to target subnet
+                const subnets = [...vpcs[targetVpcIndex].subnets];
+                subnets[targetSubnetIndex] = {
+                    ...subnets[targetSubnetIndex],
+                    hosts: [...subnets[targetSubnetIndex].hosts, ...hostsToAdd]
+                };
+                vpcs[targetVpcIndex] = { ...vpcs[targetVpcIndex], subnets };
+                
+                return { ...template, vpcs };
+            }),
     };
 }
 
