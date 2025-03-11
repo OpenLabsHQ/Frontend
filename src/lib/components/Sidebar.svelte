@@ -45,9 +45,8 @@
   >
     Range Templates
   </a>
-  <!-- Documentation link will eventually be moved to docs.openlabs.sh -->
   <a
-    href="https://openlabshq.github.io/Documentation/"
+    href="https://docs.openlabs.sh/"
     target="_blank"
     rel="noopener noreferrer"
     class="w-7/8 rounded-full bg-blue-500 px-4 py-3 text-center font-bold text-white hover:bg-blue-700"

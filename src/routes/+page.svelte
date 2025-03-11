@@ -28,9 +28,8 @@
   >
     <nav class="hidden md:flex md:items-center md:gap-4 lg:gap-8">
       <a href="https://github.com/OpenLabsHQ" class="font-bold">OpenLabsHQ</a>
-      <!-- Documentation link will eventually be moved to a subdomain of the OpenLabs website -->
       <a
-        href="https://openlabshq.github.io/Documentation/"
+        href="https://docs.openlabs.sh"
         class="font-bold"
         target="_blank"
         rel="noopener noreferrer">Documentation</a
