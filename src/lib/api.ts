@@ -408,6 +408,16 @@ export const rangesApi = {
       true
     )
   },
+
+  // Delete a template by ID
+  deleteTemplate: async (templateId: string) => {
+    return await apiRequest<any>(
+      `/api/v1/templates/ranges/${templateId}`,
+      'DELETE',
+      undefined,
+      true
+    )
+  },
 }
 
 export const templatesApi = {
