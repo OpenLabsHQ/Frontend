@@ -35,13 +35,13 @@
   </div>
   <a
     href="/ranges"
-    class="w-7/8 min-w-[200px] rounded-full bg-blue-500 px-6 py-3 text-center font-bold text-white whitespace-nowrap hover:bg-blue-700"
+    class="w-7/8 whitespace-nowrap rounded-full bg-blue-500 px-4 py-3 text-center font-bold text-white hover:bg-blue-700"
   >
     Deployed Ranges
   </a>
   <a
     href="/templates"
-    class="w-7/8 min-w-[200px] rounded-full bg-blue-500 px-6 py-3 text-center font-bold text-white whitespace-nowrap hover:bg-blue-700"
+    class="w-7/8 whitespace-nowrap rounded-full bg-blue-500 px-4 py-3 text-center font-bold text-white hover:bg-blue-700"
   >
     Range Templates
   </a>
@@ -49,7 +49,7 @@
     href="https://docs.openlabs.sh/"
     target="_blank"
     rel="noopener noreferrer"
-    class="w-7/8 min-w-[200px] rounded-full bg-blue-500 px-6 py-3 text-center font-bold text-white whitespace-nowrap hover:bg-blue-700"
+    class="w-7/8 whitespace-nowrap rounded-full bg-blue-500 px-4 py-3 text-center font-bold text-white hover:bg-blue-700"
   >
     Documentation
   </a>
