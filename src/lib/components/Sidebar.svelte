@@ -46,6 +46,12 @@
     Range Templates
   </a>
   <a
+    href="/workspaces"
+    class="w-7/8 rounded-full bg-blue-500 px-4 py-3 text-center font-bold text-white hover:bg-blue-700"
+  >
+    Workspaces
+  </a>
+  <a
     href="https://docs.openlabs.sh/"
     target="_blank"
     rel="noopener noreferrer"
