@@ -144,7 +144,18 @@
     deployingTemplate = true
 
     try {
-      const result = await rangesApi.deployTemplate(templateId)
+      // Create a name for the deployed range based on the template name
+      const rangeName = `${template.name} Deployment`
+      const description = `Deployed from template: ${template.name}`
+      // Use 'us_east_1' as default region (must use underscore, not hyphen)
+      const region = 'us_east_1'
+      
+      const result = await rangesApi.deployTemplate(
+        templateId,
+        rangeName,
+        description,
+        region
+      )
 
       if (result.error) {
         deploymentError = result.error

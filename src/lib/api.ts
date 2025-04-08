@@ -400,11 +400,23 @@ export const rangesApi = {
   },
 
   // Deploy a range from a template
-  deployTemplate: async (templateId: string) => {
+  deployTemplate: async (
+    templateId: string,
+    name: string,
+    description: string,
+    region: 'us_east_1' | 'us_east_2',
+    readme?: string
+  ) => {
     return await apiRequest<any>(
       '/api/v1/ranges/deploy',
       'POST',
-      [{ id: templateId }],
+      {
+        template_id: templateId,
+        name,
+        description,
+        region,
+        readme: readme || null
+      },
       true
     )
   },
