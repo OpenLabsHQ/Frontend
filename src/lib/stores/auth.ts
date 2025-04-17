@@ -18,8 +18,10 @@ import { writable } from 'svelte/store'
 interface AuthStore {
   isAuthenticated: boolean
   user?: {
+    id?: string
     name?: string
     email?: string
+    admin?: boolean
   }
 }
 

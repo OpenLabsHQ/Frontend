@@ -533,6 +533,37 @@ export const workspacesApi = {
       true
     )
   },
+
+  // Get templates shared in a workspace
+  getWorkspaceTemplates: async (workspaceId: string) => {
+    return await apiRequest<any[]>(
+      `/api/v1/workspaces/${workspaceId}/templates`,
+      'GET',
+      undefined,
+      true
+    )
+  },
+
+  // Share a template with a workspace
+  shareTemplateWithWorkspace: async (workspaceId: string, templateId: string) => {
+    return await apiRequest<{success: boolean}>(
+      `/api/v1/workspaces/${workspaceId}/templates`,
+      'POST',
+      { template_id: templateId },
+      true
+    )
+  },
+
+  // Remove a template from a workspace
+  // Note: templateId should be the actual template ID (not the sharing record ID)
+  removeTemplateFromWorkspace: async (workspaceId: string, templateId: string) => {
+    return await apiRequest<{success: boolean}>(
+      `/api/v1/workspaces/${workspaceId}/templates/${templateId}`,
+      'DELETE',
+      undefined,
+      true
+    )
+  },
 }
 
 export default {

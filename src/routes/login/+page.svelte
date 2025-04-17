@@ -38,7 +38,14 @@
 
       // Only set auth and redirect if login was successful
       if (result.data) {
-        auth.setAuth()
+        // After login, fetch user data to get all user details including ID
+        const userInfo = await authApi.getCurrentUser();
+        if (userInfo.data?.user) {
+          auth.setAuth(userInfo.data.user);
+        } else {
+          // Fallback if /users/me endpoint fails
+          auth.setAuth(result.data.user || {});
+        }
         goto('/ranges')
       } else {
         // Fallback error if no data and no error

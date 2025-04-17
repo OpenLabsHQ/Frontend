@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
+  import { onMount, onDestroy } from 'svelte'
   import { goto } from '$app/navigation'
-  import { workspacesApi } from '$lib/api'
+  import { workspacesApi, rangesApi } from '$lib/api'
   import { auth } from '$lib/stores/auth'
   import { browser } from '$app/environment'
   import Sidebar from '$lib/components/Sidebar.svelte'
@@ -9,6 +9,15 @@
   import type { Workspace, WorkspaceUser, AvailableUser, WorkspaceRole } from '$lib/types/workspaces'
   
   // Use the auth store to check if the current user is an admin
+  
+  // Debug log auth state
+  const unsubscribe = auth.subscribe(authState => {
+    console.log('Auth state:', authState);
+  });
+  
+  onDestroy(() => {
+    unsubscribe();
+  });
   
   // Get workspace ID from URL parameter
   export let data
@@ -37,6 +46,9 @@
   let isAddingUser = false
   let addUserError = ''
   
+  // Debug initial state
+  console.log('Initial state - selectedUserId:', selectedUserId)
+  
   // Store all users for lookup purposes
   let allUsers: AvailableUser[] = []
   
@@ -44,6 +56,20 @@
   let showDeleteConfirm = false
   let isDeleting = false
   let deleteError = ''
+  
+  // Template management state
+  let workspaceTemplates = []
+  let availableTemplates = []
+  let isTemplateLoading = false
+  let isLoadingAvailableTemplates = false
+  let showShareTemplateDialog = false
+  let selectedTemplateId = ''
+  let isSharingTemplate = false
+  let shareTemplateError = ''
+  let showRemoveTemplateConfirm = false
+  let templateToRemove = null
+  let isRemovingTemplate = false
+  let removeTemplateError = ''
   
   // Initialize data when component mounts
   onMount(async () => {
@@ -66,6 +92,9 @@
       
       // Then load workspace data
       await loadWorkspaceData(data.workspaceId)
+      
+      // Also load workspace templates
+      await loadWorkspaceTemplates(data.workspaceId)
     }
   })
   
@@ -94,6 +123,14 @@
       
       // Load workspace users
       await loadWorkspaceUsers(workspaceId)
+      
+      // Force admin status if user is global admin
+      if ($auth.user?.admin === true) {
+        console.log('Forcing admin status because user is a global admin');
+        workspace.is_admin = true;
+      }
+      
+      console.log('Final workspace state after loading:', workspace);
       
       // Initialize edit form with current data
       editedName = workspace.name
@@ -125,10 +162,19 @@
       }
       
       workspaceUsers = usersResponse.data
+      console.log('Workspace users loaded:', workspaceUsers)
       
       // Check if the current user is the owner of the workspace or has admin role
       const currentUserId = $auth.user?.id
       const isGlobalAdmin = $auth.user?.admin === true
+      
+      console.log('Debug admin status:', {
+        currentUserId,
+        authUser: $auth.user,
+        isGlobalAdmin,
+        workspace,
+        workspaceUsers
+      });
       
       if (currentUserId && workspace) {
         // Check if user is the workspace owner
@@ -140,6 +186,15 @@
         
         // Set admin status on the workspace object
         workspace.is_admin = isGlobalAdmin || isWorkspaceOwner || isWorkspaceAdmin || false
+        
+        console.log('Admin status details:', {
+          isGlobalAdmin,
+          isWorkspaceOwner,
+          workspace_owner_id: workspace.owner_id,
+          currentUserInWorkspace,
+          isWorkspaceAdmin,
+          final_is_admin: workspace.is_admin
+        });
       }
       
     } catch (err) {
@@ -169,12 +224,27 @@
       
       // Save all users for lookup
       allUsers = response.data;
+      console.log('All users loaded:', allUsers);
       
-      // Get the list of users already in the workspace
+      // Check for users without IDs
+      allUsers.forEach(user => {
+        if (!user.id) {
+          console.warn('Found user with null or undefined ID:', user);
+        }
+      });
+      
+      // Get the list of user IDs already in the workspace
       const existingUserIds = new Set(workspaceUsers.map(u => u.user_id));
+      console.log('Existing user IDs:', [...existingUserIds]);
       
       // Filter out users already in the workspace
-      availableUsers = response.data.filter(user => !existingUserIds.has(user.id));
+      availableUsers = response.data.filter(user => 
+        user.id && !existingUserIds.has(user.id)
+      );
+      console.log('Available users for adding:', availableUsers);
+      
+      // Make sure selectedUserId is reset when loading available users
+      selectedUserId = '';
       
     } catch (err) {
       addUserError = err instanceof Error ? err.message : 'Failed to load available users'
@@ -224,6 +294,11 @@
   async function addUserToWorkspace() {
     if (!workspace) return
     
+    console.log('Adding user to workspace. Selected user ID:', selectedUserId);
+    console.log('Available users:', availableUsers);
+    console.log('Available user IDs:', availableUsers.map(u => u.id));
+    
+    // Validate user selection
     if (!selectedUserId || selectedUserId === "") {
       addUserError = 'Please select a user to add'
       return
@@ -233,21 +308,32 @@
       isAddingUser = true
       addUserError = ''
       
-      // Get the selected user based on UUID
+      // Get the selected user based on ID
+      console.log('Looking for user with ID:', selectedUserId);
       const selectedUser = availableUsers.find(user => user.id === selectedUserId);
+      console.log('Found selected user:', selectedUser);
       
+      // Extra validation for the selected user
       if (!selectedUser) {
         addUserError = "Selected user not found in available users list"
         isAddingUser = false
         return
       }
       
-      // Now we have the proper UUID from the dropdown
+      if (!selectedUser.id) {
+        addUserError = "Selected user has an invalid ID"
+        isAddingUser = false
+        return
+      }
+      
+      // Now we have the selected user with a valid UUID
       const userData = {
-        user_id: selectedUserId,
+        user_id: selectedUser.id,
         role: selectedUserRole,
         ...(userTimeLimit && { time_limit: userTimeLimit })
       }
+      
+      console.log('Sending user data to API:', userData);
       
       const response = await workspacesApi.addWorkspaceUser(workspace.id, userData)
       
@@ -256,8 +342,15 @@
         return
       }
       
-      // User added successfully, refresh users list
+      // User added successfully, refresh users list and also refresh available users
       await loadWorkspaceUsers(workspace.id)
+      
+      // Also refresh all users to make sure user details are up to date
+      const usersResponse = await workspacesApi.getAllUsers()
+      if (usersResponse.data) {
+        allUsers = usersResponse.data
+        console.log('All users refreshed after adding user:', allUsers)
+      }
       
       // Reset form
       showAddUserForm = false
@@ -341,8 +434,249 @@
   async function showAddUser() {
     showAddUserForm = true
     addUserError = ''
-    selectedUserId = ''
+    
+    // Make sure selectedUserId is set to an empty string to start
+    selectedUserId = '';
+    
+    // Load available users
     await loadAvailableUsers()
+    
+    // If we have available users, select the first one
+    if (availableUsers.length > 0) {
+      console.log('Setting initial selected user to:', availableUsers[0]);
+      // Use the UUID as the ID
+      selectedUserId = availableUsers[0].id;
+    } else {
+      console.warn('No users available to add to the workspace');
+    }
+  }
+  
+  // Load templates shared with this workspace
+  async function loadWorkspaceTemplates(workspaceId: string) {
+    if (!workspaceId) return;
+    
+    try {
+      isTemplateLoading = true;
+      
+      // Get templates shared with the workspace
+      const response = await workspacesApi.getWorkspaceTemplates(workspaceId);
+      
+      if (response.error) {
+        error = response.error;
+        workspaceTemplates = [];
+        return;
+      }
+      
+      if (!response.data) {
+        workspaceTemplates = [];
+        return;
+      }
+      
+      const sharedTemplates = response.data;
+      console.log('Workspace template records loaded:', sharedTemplates);
+      
+      // Now we need to fetch the actual template details for each shared template
+      // Create a new array to hold the enhanced templates
+      const enhancedTemplates = [];
+      
+      // Fetch each template's details individually using the specific endpoint
+      for (const sharedTemplate of sharedTemplates) {
+        try {
+          // Get the specific template by its ID
+          const templateResponse = await rangesApi.getTemplateById(sharedTemplate.template_id);
+          
+          // Store the original sharing record ID before we enhance
+          const originalId = sharedTemplate.id;
+                
+          if (templateResponse.error) {
+            console.warn(`Error fetching template ${sharedTemplate.template_id}:`, templateResponse.error);
+            // Add a placeholder entry
+            enhancedTemplates.push({
+              ...sharedTemplate,
+              // Keep the original ID for unsharing
+              id: originalId,
+              name: `Template ${sharedTemplate.template_id.substring(0, 8)}`,
+              provider: 'unknown',
+              description: 'Template details not available',
+              vnc: false,
+              vpn: false
+            });
+          } else if (templateResponse.data) {
+            // Merge the template details with the shared template record
+            enhancedTemplates.push({
+              ...sharedTemplate,
+              // Keep the original ID for unsharing
+              id: originalId,
+              name: templateResponse.data.name,
+              provider: templateResponse.data.provider,
+              description: templateResponse.data.description,
+              vnc: templateResponse.data.vnc,
+              vpn: templateResponse.data.vpn
+            });
+          } else {
+            // Fallback if no data
+            enhancedTemplates.push({
+              ...sharedTemplate,
+              // Keep the original ID for unsharing
+              id: originalId,
+              name: `Template ${sharedTemplate.template_id.substring(0, 8)}`,
+              provider: 'unknown',
+              description: 'No template data returned',
+              vnc: false,
+              vpn: false
+            });
+          }
+        } catch (err) {
+          console.error(`Failed to fetch template ${sharedTemplate.template_id}:`, err);
+          // Add placeholder on error
+          const originalId = sharedTemplate.id;
+          enhancedTemplates.push({
+            ...sharedTemplate,
+            // Keep the original ID for unsharing
+            id: originalId,
+            name: `Template ${sharedTemplate.template_id.substring(0, 8)}`,
+            provider: 'unknown',
+            description: 'Error loading template details',
+            vnc: false,
+            vpn: false
+          });
+        }
+      }
+      
+      workspaceTemplates = enhancedTemplates;
+      console.log('Enhanced workspace templates:', workspaceTemplates);
+    } catch (err) {
+      console.error("Failed to load workspace templates:", err);
+      workspaceTemplates = [];
+    } finally {
+      isTemplateLoading = false;
+    }
+  }
+  
+  // Load templates that can be shared with the workspace
+  async function loadAvailableTemplates() {
+    if (!workspace) return;
+    
+    try {
+      isLoadingAvailableTemplates = true;
+      shareTemplateError = '';
+      
+      // Get all templates the user owns
+      const response = await rangesApi.getTemplates();
+      
+      if (response.error) {
+        shareTemplateError = response.error;
+        availableTemplates = [];
+        return;
+      }
+      
+      if (!response.data) {
+        availableTemplates = [];
+        return;
+      }
+      
+      console.log('Templates from API:', response.data);
+      
+      // Get all templates already shared with workspace (use template_id, not the sharing record id)
+      const workspaceTemplateIds = new Set(workspaceTemplates.map(t => t.template_id));
+      console.log('Already shared template IDs:', [...workspaceTemplateIds]);
+      
+      // Filter out templates already shared with the workspace
+      availableTemplates = response.data.filter(template => !workspaceTemplateIds.has(template.id));
+      
+    } catch (err) {
+      shareTemplateError = err instanceof Error ? err.message : 'Failed to load available templates';
+      availableTemplates = [];
+    } finally {
+      isLoadingAvailableTemplates = false;
+    }
+  }
+  
+  // Show the template sharing dialog
+  async function showShareTemplate() {
+    showShareTemplateDialog = true;
+    shareTemplateError = '';
+    selectedTemplateId = '';
+    await loadAvailableTemplates();
+  }
+  
+  // Share a template with the workspace
+  async function shareTemplate() {
+    if (!workspace || !selectedTemplateId) return;
+    
+    try {
+      isSharingTemplate = true;
+      shareTemplateError = '';
+      
+      console.log('Sharing template ID:', selectedTemplateId);
+      
+      // Find the selected template to log details
+      const selectedTemplate = availableTemplates.find(t => t.id === selectedTemplateId);
+      console.log('Selected template for sharing:', selectedTemplate);
+      
+      const response = await workspacesApi.shareTemplateWithWorkspace(workspace.id, selectedTemplateId);
+      console.log('Template share API response:', response);
+      
+      if (response.error) {
+        shareTemplateError = response.error;
+        return;
+      }
+      
+      // Template shared successfully, reload templates
+      await loadWorkspaceTemplates(workspace.id);
+      
+      // Reset form and close dialog
+      showShareTemplateDialog = false;
+      selectedTemplateId = '';
+      
+    } catch (err) {
+      shareTemplateError = err instanceof Error ? err.message : 'Failed to share template';
+    } finally {
+      isSharingTemplate = false;
+    }
+  }
+  
+  // Show confirmation to remove a template from workspace
+  function confirmRemoveTemplate(template) {
+    templateToRemove = template;
+    showRemoveTemplateConfirm = true;
+    removeTemplateError = '';
+  }
+  
+  // Remove a template from the workspace
+  async function removeTemplate() {
+    if (!workspace || !templateToRemove) return;
+    
+    try {
+      isRemovingTemplate = true;
+      removeTemplateError = '';
+      
+      console.log('Removing template:', templateToRemove);
+      
+      // IMPORTANT: We must use the template_id for unsharing, not the sharing record ID
+      // This should match the same ID used for viewing template details
+      const templateId = templateToRemove.template_id;
+      console.log('Using template ID for removal:', templateId);
+      
+      const response = await workspacesApi.removeTemplateFromWorkspace(workspace.id, templateId);
+      
+      if (response.error) {
+        removeTemplateError = response.error;
+        return;
+      }
+      
+      // Template removed successfully, reload templates
+      await loadWorkspaceTemplates(workspace.id);
+      
+      // Reset state and close confirmation dialog
+      showRemoveTemplateConfirm = false;
+      templateToRemove = null;
+      
+    } catch (err) {
+      removeTemplateError = err instanceof Error ? err.message : 'Failed to remove template';
+    } finally {
+      isRemovingTemplate = false;
+    }
   }
   
   // Delete workspace
@@ -377,11 +711,34 @@
       return { name: 'Unknown User', email: 'No Email' };
     }
     
-    // Find user in the allUsers array
-    const user = allUsers.find(u => u.id === userId);
+    // First, look for this user in the workspace users array
+    const workspaceUser = workspaceUsers.find(u => u.user_id === userId);
+    if (workspaceUser && workspaceUser.name) {
+      return {
+        name: workspaceUser.name,
+        email: workspaceUser.email || ''
+      };
+    }
     
-    // If not found, try to reload users
-    if (!user && allUsers.length === 0) {
+    // If not found in workspace users, check all users array
+    const user = allUsers.find(u => u.id === userId);
+    if (user) {
+      return {
+        name: user.name,
+        email: user.email || ''
+      };
+    }
+    
+    // If the user is the current logged-in user
+    if (userId === $auth.user?.id && $auth.user?.name) {
+      return {
+        name: $auth.user.name,
+        email: $auth.user.email || ''
+      };
+    }
+    
+    // If we still don't have user info, try to load all users if not already loaded
+    if (allUsers.length === 0) {
       workspacesApi.getAllUsers().then(response => {
         if (response.data) {
           allUsers = response.data;
@@ -389,10 +746,11 @@
       });
     }
     
+    // Return a more user-friendly unknown user format 
     return {
-      name: user?.name || 'Unknown User',
-      email: user?.email || 'No Email'
-    }
+      name: 'User ' + userId.slice(0, 6),
+      email: 'Unknown Email'
+    };
   }
 </script>
 
@@ -672,10 +1030,13 @@
                             id="user"
                             class="block w-full appearance-none rounded-md border border-gray-300 py-2 pl-3 pr-10 text-base focus:border-blue-500 focus:outline-none focus:ring-blue-500"
                             bind:value={selectedUserId}
+                            on:change={(e) => console.log('Select value changed to:', e.target.value)}
                           >
-                            <option value="" disabled selected>Select a user...</option>
+                            <option value="" disabled>Select a user...</option>
                             {#each availableUsers as user}
-                              <option value={user.id}>{user.name} ({user.email})</option>
+                              <option value={user.id}>
+                                {user.name} ({user.email})
+                              </option>
                             {/each}
                           </select>
                           <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
@@ -959,15 +1320,306 @@
               {/if}
             </div>
             
-            <!-- Templates Section (placeholder for future implementation) -->
+            <!-- Templates Section -->
             <div class="overflow-hidden rounded-lg bg-white shadow">
-              <div class="border-b p-4">
-                <h2 class="text-lg font-medium text-gray-900">Workspace Templates</h2>
+              <div class="bg-gradient-to-r from-blue-600 to-blue-700 p-4 text-white">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h2 class="text-lg font-semibold">Workspace Templates</h2>
+                    <p class="text-sm text-blue-100">Templates shared with workspace members</p>
+                  </div>
+                  {#if workspace?.is_admin}
+                    <button
+                      class="flex items-center rounded-md bg-white px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50"
+                      on:click={showShareTemplate}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" class="mr-1 h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
+                      </svg>
+                      Share Template
+                    </button>
+                  {/if}
+                </div>
               </div>
-              <div class="p-6 text-center text-gray-500">
-                <p>Template sharing functionality will be available in a future update.</p>
-              </div>
+              
+              <!-- Share Template Dialog -->
+              {#if showShareTemplateDialog && workspace?.is_admin}
+                <div class="border-b bg-gradient-to-b from-blue-50 to-white p-6">
+                  <h3 class="mb-4 text-lg font-medium text-blue-800">Share Template with Workspace</h3>
+                  
+                  {#if shareTemplateError}
+                    <div class="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-700 border border-red-200">
+                      <div class="flex">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                        </svg>
+                        <p>{shareTemplateError}</p>
+                      </div>
+                    </div>
+                  {/if}
+                  
+                  <div class="mb-4">
+                    <label for="template" class="mb-1 block text-sm font-medium text-gray-700">
+                      Select Template to Share *
+                    </label>
+                    {#if isLoadingAvailableTemplates}
+                      <div class="py-2 text-sm text-gray-500">Loading templates...</div>
+                    {:else if availableTemplates.length > 0}
+                      <div class="relative">
+                        <select
+                          id="template"
+                          class="block w-full appearance-none rounded-md border border-gray-300 py-2 pl-3 pr-10 text-base focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                          bind:value={selectedTemplateId}
+                        >
+                          <option value="" disabled selected>Select a template...</option>
+                          {#each availableTemplates as template}
+                            <option value={template.id}>{template.name} ({template.provider})</option>
+                          {/each}
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                          <svg class="h-4 w-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                            <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+                          </svg>
+                        </div>
+                      </div>
+                      <p class="mt-1 text-xs text-gray-500">
+                        Choose a template to share with all workspace members
+                      </p>
+                    {:else}
+                      <div class="rounded-md bg-yellow-50 p-3 text-sm text-yellow-700 border border-yellow-200">
+                        <div class="flex">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                          </svg>
+                          <p>No templates available to share</p>
+                        </div>
+                      </div>
+                      <p class="mt-2 text-xs text-gray-500">
+                        <a href="/templates/create" class="text-blue-600 hover:text-blue-800">Create a new template</a> first
+                      </p>
+                    {/if}
+                  </div>
+                  
+                  <div class="mt-6 flex justify-end space-x-3 border-t border-gray-200 pt-4">
+                    <button
+                      type="button"
+                      class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+                      on:click={() => (showShareTemplateDialog = false)}
+                      disabled={isSharingTemplate}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none {isSharingTemplate || !selectedTemplateId || availableTemplates.length === 0 ? 'cursor-not-allowed opacity-70' : ''}"
+                      on:click={shareTemplate}
+                      disabled={isSharingTemplate || !selectedTemplateId || availableTemplates.length === 0}
+                    >
+                      {#if isSharingTemplate}
+                        <span class="flex items-center">
+                          <svg
+                            class="mr-2 -ml-1 h-4 w-4 animate-spin text-white"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              class="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              stroke-width="4"
+                            ></circle>
+                            <path
+                              class="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            ></path>
+                          </svg>
+                          Sharing...
+                        </span>
+                      {:else}
+                        Share Template
+                      {/if}
+                    </button>
+                  </div>
+                </div>
+              {/if}
+              
+              <!-- Workspace Templates List -->
+              {#if isTemplateLoading}
+                <div class="flex justify-center p-12">
+                  <LoadingSpinner size="small" message="Loading shared templates..." />
+                </div>
+              {:else if workspaceTemplates.length > 0}
+                <div class="overflow-x-auto">
+                  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+                    {#each workspaceTemplates as template}
+                      <div class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm hover:shadow-md transition-all duration-200">
+                        <div class="border-b border-gray-200 bg-gray-50 p-3">
+                          <div class="flex items-center justify-between">
+                            <h3 class="text-md font-medium text-gray-900 truncate" title={template.name}>
+                              {template.name}
+                            </h3>
+                            <span class="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
+                              {template.provider}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        <div class="p-3">
+                          {#if template.description}
+                            <p class="mb-3 text-sm text-gray-600 line-clamp-2">{template.description}</p>
+                          {:else}
+                            <p class="mb-3 text-sm italic text-gray-400">No description</p>
+                          {/if}
+                          
+                          <div class="flex space-x-2 text-xs mb-3">
+                            <span class={`rounded px-2 py-1 ${template.vnc ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-400'}`}>
+                              VNC {template.vnc ? '✓' : '✗'}
+                            </span>
+                            <span class={`rounded px-2 py-1 ${template.vpn ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-400'}`}>
+                              VPN {template.vpn ? '✓' : '✗'}
+                            </span>
+                          </div>
+                          
+                          <div class="flex border-t border-gray-100 pt-3">
+                            <a
+                              href={`/templates/${template.template_id}`}
+                              class="flex-1 rounded-md bg-blue-500 px-3 py-2 text-center text-sm font-medium text-white shadow-sm hover:bg-blue-600"
+                            >
+                              View Details
+                            </a>
+                            
+                            {#if workspace?.is_admin}
+                              <button
+                                class="ml-2 rounded-md border border-red-300 bg-white px-3 py-2 text-sm font-medium text-red-700 shadow-sm hover:bg-red-50"
+                                on:click={() => confirmRemoveTemplate(template)}
+                              >
+                                Unshare
+                              </button>
+                            {/if}
+                          </div>
+                        </div>
+                      </div>
+                    {/each}
+                  </div>
+                </div>
+              {:else}
+                <div class="p-10 text-center">
+                  <div class="rounded-lg border border-dashed border-gray-300 bg-white p-8">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto mb-4 h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <h3 class="mb-2 text-lg font-medium text-gray-900">No templates shared in this workspace</h3>
+                    <p class="mb-6 text-gray-500">Share templates with workspace members for collaboration</p>
+                    
+                    {#if workspace?.is_admin}
+                      <button
+                        class="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700"
+                        on:click={showShareTemplate}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="mr-2 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                          <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
+                        </svg>
+                        Share your first template
+                      </button>
+                    {/if}
+                  </div>
+                </div>
+              {/if}
             </div>
+            
+            <!-- Confirm Remove Template Modal -->
+            {#if showRemoveTemplateConfirm && templateToRemove}
+              <div class="fixed inset-0 z-50 flex items-center justify-center">
+                <!-- Backdrop -->
+                <div
+                  class="absolute inset-0 bg-gray-800 bg-opacity-75 transition-opacity"
+                  on:click={() => !isRemovingTemplate && (showRemoveTemplateConfirm = false)}
+                  on:keydown={(e) => e.key === 'Escape' && !isRemovingTemplate && (showRemoveTemplateConfirm = false)}
+                  role="presentation"
+                ></div>
+                
+                <!-- Modal dialog -->
+                <div class="relative w-full max-w-md rounded-lg bg-white shadow-xl">
+                  <div class="p-6">
+                    {#if removeTemplateError}
+                      <div class="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-700">
+                        <p>{removeTemplateError}</p>
+                      </div>
+                    {/if}
+                    
+                    <div class="mb-4 text-center">
+                      <svg
+                        class="mx-auto mb-4 h-12 w-12 text-red-500"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                        />
+                      </svg>
+                      <h3 class="text-xl font-bold text-gray-900">
+                        Unshare Template
+                      </h3>
+                      <p class="mt-2 text-gray-600">
+                        Are you sure you want to unshare <strong>{templateToRemove.name}</strong> from this workspace? Workspace members will no longer have access to this template.
+                      </p>
+                    </div>
+                    
+                    <div class="mt-6 flex justify-end space-x-3">
+                      <button
+                        class="rounded border border-gray-300 bg-white px-4 py-2 text-gray-700 hover:bg-gray-50"
+                        on:click={() => (showRemoveTemplateConfirm = false)}
+                        disabled={isRemovingTemplate}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        class="rounded bg-red-500 px-4 py-2 text-white hover:bg-red-600 disabled:opacity-70"
+                        on:click={removeTemplate}
+                        disabled={isRemovingTemplate}
+                      >
+                        {#if isRemovingTemplate}
+                          <span class="flex items-center">
+                            <svg
+                              class="mr-2 -ml-1 h-4 w-4 animate-spin text-white"
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                            >
+                              <circle
+                                class="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                stroke-width="4"
+                              ></circle>
+                              <path
+                                class="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                              ></path>
+                            </svg>
+                            Unsharing...
+                          </span>
+                        {:else}
+                          Unshare
+                        {/if}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {/if}
           </div>
         </div>
       {:else}
