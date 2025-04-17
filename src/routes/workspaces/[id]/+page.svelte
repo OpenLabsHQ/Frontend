@@ -57,6 +57,12 @@
   let isDeleting = false
   let deleteError = ''
   
+  // User removal confirmation state
+  let showRemoveUserConfirm = false
+  let userToRemove = null
+  let isRemovingUser = false
+  let removeUserError = ''
+  
   // Template management state
   let workspaceTemplates = []
   let availableTemplates = []
@@ -365,28 +371,39 @@
     }
   }
   
+  // Show confirmation to remove a user from workspace
+  function confirmRemoveUser(userId: string, userName: string) {
+    userToRemove = { userId, userName };
+    showRemoveUserConfirm = true;
+    removeUserError = '';
+  }
+  
   // Remove user from workspace
-  async function removeUser(userId: string, userName: string) {
-    if (!workspace) return
-    
-    // Confirm removal
-    if (!confirm(`Are you sure you want to remove ${userName} from this workspace?`)) {
-      return
-    }
+  async function removeUser() {
+    if (!workspace || !userToRemove) return
     
     try {
-      const response = await workspacesApi.removeWorkspaceUser(workspace.id, userId)
+      isRemovingUser = true;
+      removeUserError = '';
+      
+      const response = await workspacesApi.removeWorkspaceUser(workspace.id, userToRemove.userId)
       
       if (response.error) {
-        error = response.error
-        return
+        removeUserError = response.error;
+        return;
       }
       
       // User removed successfully, refresh users list
-      await loadWorkspaceUsers(workspace.id)
+      await loadWorkspaceUsers(workspace.id);
+      
+      // Reset state and close confirmation dialog
+      showRemoveUserConfirm = false;
+      userToRemove = null;
       
     } catch (err) {
-      error = err instanceof Error ? err.message : 'Failed to remove user from workspace'
+      removeUserError = err instanceof Error ? err.message : 'Failed to remove user from workspace';
+    } finally {
+      isRemovingUser = false;
     }
   }
 
@@ -1280,7 +1297,7 @@
                                 {/if}
                                 <button
                                   class="text-red-600 hover:text-red-900 flex items-center"
-                                  on:click={() => removeUser(user.user_id, getUserDetails(user.user_id).name)}
+                                  on:click={() => confirmRemoveUser(user.user_id, getUserDetails(user.user_id).name)}
                                 >
                                   <svg xmlns="http://www.w3.org/2000/svg" class="mr-1 h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
@@ -1726,6 +1743,103 @@
                     </span>
                   {:else}
                     Delete
+                  {/if}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      {/if}
+
+      <!-- Remove User Confirmation Modal -->
+      {#if showRemoveUserConfirm && userToRemove}
+        <div class="fixed inset-0 z-50 flex items-center justify-center">
+          <!-- Backdrop with blur effect -->
+          <div 
+            class="absolute inset-0 bg-gray-800 bg-opacity-75 backdrop-blur-sm transition-opacity"
+            on:click={() => !isRemovingUser && (showRemoveUserConfirm = false)}
+            on:keydown={(e) => e.key === 'Escape' && !isRemovingUser && (showRemoveUserConfirm = false)}
+            role="presentation"
+          ></div>
+          
+          <!-- Modal dialog -->
+          <div class="relative w-full max-w-md transform overflow-hidden rounded-lg bg-white shadow-xl transition-all">
+            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-red-500 to-red-600"></div>
+            
+            <div class="p-6">
+              {#if removeUserError}
+                <div class="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-700 border border-red-200">
+                  <div class="flex">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                    </svg>
+                    <p>{removeUserError}</p>
+                  </div>
+                </div>
+              {/if}
+              
+              <div class="flex items-center">
+                <div class="flex-shrink-0 h-12 w-12 bg-red-100 rounded-full flex items-center justify-center text-red-500">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+                <div class="ml-4">
+                  <h3 class="text-lg font-medium text-gray-900">
+                    Remove User
+                  </h3>
+                  <p class="text-sm text-gray-500">
+                    This will remove the user's access to this workspace
+                  </p>
+                </div>
+              </div>
+              
+              <div class="mt-4 bg-gray-50 p-4 rounded-md border border-gray-200">
+                <p class="text-gray-700">
+                  Are you sure you want to remove <span class="font-semibold text-gray-900">{userToRemove.userName}</span> from this workspace?
+                </p>
+                <p class="mt-2 text-sm text-gray-500">
+                  This user will lose access to all shared templates in this workspace. They can be added back later if needed.
+                </p>
+              </div>
+              
+              <div class="mt-6 flex justify-end space-x-3">
+                <button
+                  class="flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300"
+                  on:click={() => (showRemoveUserConfirm = false)}
+                  disabled={isRemovingUser}
+                >
+                  Cancel
+                </button>
+                <button
+                  class="flex items-center rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-red-300 disabled:opacity-70"
+                  on:click={removeUser}
+                  disabled={isRemovingUser}
+                >
+                  {#if isRemovingUser}
+                    <svg
+                      class="mr-2 h-4 w-4 animate-spin text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        class="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        stroke-width="4"
+                      ></circle>
+                      <path
+                        class="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    Removing...
+                  {:else}
+                    Remove User
                   {/if}
                 </button>
               </div>
