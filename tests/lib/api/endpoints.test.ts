@@ -171,7 +171,7 @@ describe('API Endpoints', () => {
       await rangesApi.getTemplates();
       
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/api/v1/templates/ranges'),
+        expect.stringContaining('/api/v1/blueprints/ranges'),
         expect.objectContaining({
           method: 'GET',
           credentials: 'include'
@@ -184,7 +184,7 @@ describe('API Endpoints', () => {
       await rangesApi.getTemplateById(templateId);
       
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining(`/api/v1/templates/ranges/${templateId}`),
+        expect.stringContaining(`/api/v1/blueprints/ranges/${templateId}`),
         expect.objectContaining({
           method: 'GET',
           credentials: 'include'
@@ -197,7 +197,7 @@ describe('API Endpoints', () => {
       await rangesApi.createTemplate(templateData);
       
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/api/v1/templates/ranges'),
+        expect.stringContaining('/api/v1/blueprints/ranges'),
         expect.objectContaining({
           method: 'POST',
           body: expect.stringContaining('Test Template'),
