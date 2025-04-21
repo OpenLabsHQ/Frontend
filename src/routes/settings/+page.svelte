@@ -4,6 +4,7 @@
   import { auth } from '$lib/stores/auth'
   import AuthGuard from '$lib/components/AuthGuard.svelte'
   import { fade } from 'svelte/transition'
+  import { goto } from '$app/navigation'
 
   // Password form
   let currentPassword = ''
@@ -302,7 +303,14 @@
       <div class="mb-8">
         <div class="mb-4">
           <button
-            on:click={() => window.history.back()}
+            on:click={() => {
+              // Track if we've recently submitted a form, go back twice
+              if (awsSuccess || azureSuccess || passwordSuccess) {
+                window.history.go(-2);
+              } else {
+                window.history.back();
+              }
+            }}
             class="flex w-fit cursor-pointer items-center border-none bg-transparent text-blue-500 hover:text-blue-700"
           >
             <svg
