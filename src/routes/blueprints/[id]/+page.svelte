@@ -8,19 +8,19 @@
   import NetworkGraph from '$lib/components/NetworkGraph.svelte'
   import LoadingSpinner from '$lib/components/LoadingSpinner.svelte'
 
-  // Template data
-  let template = null
+  // Blueprint data
+  let blueprint = null
   let isLoading = true
   let error = ''
 
   // Deployment status
-  let deployingTemplate = false
+  let deployingBlueprint = false
   let deploymentSuccess = ''
   let deploymentError = ''
 
   // Delete confirmation
   let showDeleteConfirm = false
-  let deletingTemplate = false
+  let deletingBlueprint = false
   let deleteSuccess = ''
   let deleteError = ''
 
@@ -34,16 +34,16 @@
     }
   })
 
-  // Get template ID from +page.ts load function
+  // Get blueprint ID from +page.ts load function
   export let data
 
-  // Function to load template data
-  async function loadTemplateData(templateId: string) {
+  // Function to load blueprint data
+  async function loadBlueprintData(blueprintId: string) {
     try {
       isLoading = true
       error = ''
 
-      const response = await rangesApi.getTemplateById(templateId)
+      const response = await rangesApi.getBlueprintById(blueprintId)
 
       if (response.error) {
         error = response.error
@@ -51,13 +51,13 @@
       }
 
       if (!response.data) {
-        error = 'No template data received from API'
+        error = 'No blueprint data received from API'
         return
       }
 
-      template = response.data
+      blueprint = response.data
     } catch (err) {
-      error = err instanceof Error ? err.message : 'Failed to load template'
+      error = err instanceof Error ? err.message : 'Failed to load blueprint'
     } finally {
       isLoading = false
     }
@@ -70,8 +70,8 @@
         goto('/login')
         return
       }
-      // Get the template data from the API
-      await loadTemplateData(data.templateId)
+      // Get the blueprint data from the API
+      await loadBlueprintData(data.blueprintId)
     }
   })
 
@@ -101,57 +101,57 @@
     }, duration)
   }
   
-  // Delete the template
-  async function deleteTemplate(templateId: string) {
+  // Delete the blueprint
+  async function deleteBlueprint(blueprintId: string) {
     // Reset notifications
     deleteError = ''
     deleteSuccess = ''
     
     // Set deleting state
-    deletingTemplate = true
+    deletingBlueprint = true
     
     try {
-      const result = await rangesApi.deleteTemplate(templateId)
+      const result = await rangesApi.deleteBlueprint(blueprintId)
       
       if (result.error) {
         deleteError = result.error
         setAutoDismiss('error', 'delete', 5000) // Error messages stay longer
       } else {
-        deleteSuccess = `Successfully deleted "${template.name}"!`
+        deleteSuccess = `Successfully deleted "${blueprint.name}"!`
         setAutoDismiss('success', 'delete', 3000)
         
-        // Navigate back to templates page after successful deletion
+        // Navigate back to blueprints page after successful deletion
         setTimeout(() => {
-          goto('/templates')
+          goto('/blueprints')
         }, 1500)
       }
     } catch (err) {
-      deleteError = 'An unexpected error occurred while deleting the template'
+      deleteError = 'An unexpected error occurred while deleting the blueprint'
       setAutoDismiss('error', 'delete', 5000)
     } finally {
-      deletingTemplate = false
+      deletingBlueprint = false
       showDeleteConfirm = false
     }
   }
 
-  // Deploy the template
-  async function deployTemplate(templateId: string) {
+  // Deploy the blueprint
+  async function deployBlueprint(blueprintId: string) {
     // Reset notifications
     deploymentError = ''
     deploymentSuccess = ''
 
     // Set deploying state
-    deployingTemplate = true
+    deployingBlueprint = true
 
     try {
-      // Create a name for the deployed range based on the template name
-      const rangeName = `${template.name} Deployment`
-      const description = `Deployed from template: ${template.name}`
+      // Create a name for the deployed range based on the blueprint name
+      const rangeName = `${blueprint.name} Deployment`
+      const description = `Deployed from blueprint: ${blueprint.name}`
       // Use 'us_east_1' as default region (must use underscore, not hyphen)
       const region = 'us_east_1'
       
-      const result = await rangesApi.deployTemplate(
-        templateId,
+      const result = await rangesApi.deployBlueprint(
+        blueprintId,
         rangeName,
         description,
         region
@@ -161,21 +161,21 @@
         deploymentError = result.error
         setAutoDismiss('error', 'deploy', 5000) // Error messages stay longer
       } else {
-        deploymentSuccess = `Successfully deployed "${template.name}"! You can view it in the Deployed Ranges section.`
+        deploymentSuccess = `Successfully deployed "${blueprint.name}"! You can view it in the Deployed Ranges section.`
         setAutoDismiss('success', 'deploy', 3000)
       }
     } catch {
       deploymentError =
-        'An unexpected error occurred while deploying the template'
+        'An unexpected error occurred while deploying the blueprint'
       setAutoDismiss('error', 'deploy', 5000)
     } finally {
-      deployingTemplate = false
+      deployingBlueprint = false
     }
   }
 </script>
 
 <svelte:head>
-  <title>OpenLabs | Template Details</title>
+  <title>OpenLabs | Blueprint Details</title>
 </svelte:head>
 
 <div class="font-roboto flex h-screen bg-gray-100">
@@ -444,7 +444,7 @@
 
       {#if isLoading}
         <div class="p-20">
-          <LoadingSpinner size="large" message="Loading template details..." />
+          <LoadingSpinner size="large" message="Loading blueprint details..." />
         </div>
       {:else if error}
         <div
@@ -453,16 +453,16 @@
           <p class="mb-2 font-bold">Error</p>
           <p>{error}</p>
           <a
-            href="/templates"
+            href="/blueprints"
             class="mt-4 inline-block rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
           >
-            Back to Templates
+            Back to Blueprints
           </a>
         </div>
-      {:else if template}
+      {:else if blueprint}
         <div class="mb-6">
           <a
-            href="/templates"
+            href="/blueprints"
             class="flex items-center text-blue-500 hover:text-blue-700"
           >
             <svg
@@ -479,33 +479,33 @@
                 d="M10 19l-7-7m0 0l7-7m-7 7h18"
               />
             </svg>
-            Back to Templates
+            Back to Blueprints
           </a>
         </div>
 
-        <!-- Template details card -->
+        <!-- Blueprint details card -->
         <div class="mb-8 overflow-hidden rounded-lg bg-white shadow-md">
           <div class="bg-blue-600 p-4 text-white">
             <div class="flex items-center justify-between">
-              <h1 class="text-2xl font-bold">{template.name}</h1>
+              <h1 class="text-2xl font-bold">{blueprint.name}</h1>
               <span class="rounded-full bg-blue-700 px-3 py-1 text-sm">
-                {template.provider || 'Unknown Provider'}
+                {blueprint.provider || 'Unknown Provider'}
               </span>
             </div>
           </div>
           <div class="p-6">
             <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-              <!-- Left column: Template info -->
+              <!-- Left column: Blueprint info -->
               <div>
-                <h2 class="mb-4 text-lg font-semibold">Template Details</h2>
+                <h2 class="mb-4 text-lg font-semibold">Blueprint Details</h2>
 
                 <div class="space-y-4">
-                  {#if template.description}
+                  {#if blueprint.description}
                     <div>
                       <h3 class="text-sm font-medium text-gray-500">
                         Description
                       </h3>
-                      <p class="mt-1">{template.description}</p>
+                      <p class="mt-1">{blueprint.description}</p>
                     </div>
                   {/if}
 
@@ -513,36 +513,36 @@
                     <h3 class="text-sm font-medium text-gray-500">Features</h3>
                     <div class="mt-1 flex space-x-2">
                       <span
-                        class={`rounded px-2 py-1 text-xs ${template.vnc ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500'}`}
+                        class={`rounded px-2 py-1 text-xs ${blueprint.vnc ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500'}`}
                       >
-                        VNC {template.vnc ? '✓' : '✗'}
+                        VNC {blueprint.vnc ? '✓' : '✗'}
                       </span>
                       <span
-                        class={`rounded px-2 py-1 text-xs ${template.vpn ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500'}`}
+                        class={`rounded px-2 py-1 text-xs ${blueprint.vpn ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500'}`}
                       >
-                        VPN {template.vpn ? '✓' : '✗'}
+                        VPN {blueprint.vpn ? '✓' : '✗'}
                       </span>
                     </div>
                   </div>
 
                   <div>
                     <h3 class="text-sm font-medium text-gray-500">
-                      Template ID
+                      Blueprint ID
                     </h3>
                     <p class="mt-1 font-mono text-sm">
-                      <span class="rounded bg-gray-100 p-1">{template.id}</span>
+                      <span class="rounded bg-gray-100 p-1">{blueprint.id}</span>
                     </p>
                   </div>
 
                   <div class="mt-4 flex space-x-2">
                     <button
-                      class="flex flex-1 items-center justify-center rounded bg-green-500 px-4 py-2 text-white hover:bg-green-600 {deployingTemplate
+                      class="flex flex-1 items-center justify-center rounded bg-green-500 px-4 py-2 text-white hover:bg-green-600 {deployingBlueprint
                         ? 'cursor-not-allowed opacity-75'
                         : ''}"
-                      on:click={() => deployTemplate(template.id)}
-                      disabled={deployingTemplate || deletingTemplate}
+                      on:click={() => deployBlueprint(blueprint.id)}
+                      disabled={deployingBlueprint || deletingBlueprint}
                     >
-                      {#if deployingTemplate}
+                      {#if deployingBlueprint}
                         <svg
                           class="mr-2 -ml-1 h-4 w-4 animate-spin text-white"
                           xmlns="http://www.w3.org/2000/svg"
@@ -565,18 +565,18 @@
                         </svg>
                         Deploying...
                       {:else}
-                        Deploy Template
+                        Deploy Blueprint
                       {/if}
                     </button>
                     
                     <button
-                      class="flex items-center justify-center rounded bg-red-500 px-4 py-2 text-white hover:bg-red-600 {deletingTemplate
+                      class="flex items-center justify-center rounded bg-red-500 px-4 py-2 text-white hover:bg-red-600 {deletingBlueprint
                         ? 'cursor-not-allowed opacity-75'
                         : ''}"
                       on:click={() => (showDeleteConfirm = true)}
-                      disabled={deployingTemplate || deletingTemplate}
+                      disabled={deployingBlueprint || deletingBlueprint}
                     >
-                      {#if deletingTemplate}
+                      {#if deletingBlueprint}
                         <svg
                           class="mr-2 -ml-1 h-4 w-4 animate-spin text-white"
                           xmlns="http://www.w3.org/2000/svg"
@@ -599,7 +599,7 @@
                         </svg>
                         Deleting...
                       {:else}
-                        Delete Template
+                        Delete Blueprint
                       {/if}
                     </button>
                   </div>
@@ -610,8 +610,8 @@
                       Hosts Summary
                     </h3>
 
-                    {#if template.vpcs && template.vpcs.length > 0}
-                      {#each template.vpcs as vpc}
+                    {#if blueprint.vpcs && blueprint.vpcs.length > 0}
+                      {#each blueprint.vpcs as vpc}
                         {#if vpc.subnets && vpc.subnets.length > 0}
                           {#each vpc.subnets as subnet}
                             {#if subnet.hosts && subnet.hosts.length > 0}
@@ -622,9 +622,9 @@
                                 <div class="mt-1 space-y-2">
                                   {#each subnet.hosts as host}
                                     <!-- 
-                                                                            Host information display
-                                                                            Note: We will eventually allow specified private IPs for hosts
-                                                                        -->
+                                                                        Host information display
+                                                                        Note: We will eventually allow specified private IPs for hosts
+                                                                    -->
                                     <div
                                       class="flex items-center justify-between rounded border border-gray-200 bg-white p-2 text-sm"
                                     >
@@ -656,8 +656,8 @@
                           {/each}
                         {/if}
                       {/each}
-                    {:else if template.vpc && template.vpc.subnets && template.vpc.subnets.length > 0}
-                      {#each template.vpc.subnets as subnet}
+                    {:else if blueprint.vpc && blueprint.vpc.subnets && blueprint.vpc.subnets.length > 0}
+                      {#each blueprint.vpc.subnets as subnet}
                         {#if subnet.hosts && subnet.hosts.length > 0}
                           <div class="mt-2 rounded bg-gray-50 p-3">
                             <p class="text-xs text-gray-500">
@@ -699,7 +699,7 @@
                       <div
                         class="rounded bg-gray-50 p-3 text-sm text-gray-500 italic"
                       >
-                        No hosts defined in this template
+                        No hosts defined in this blueprint
                       </div>
                     {/if}
                   </div>
@@ -709,9 +709,9 @@
               <!-- Right column: Network visualization -->
               <div>
                 <h2 class="mb-4 text-lg font-semibold">Network Diagram</h2>
-                {#key template?.id}
-                  {#if template}
-                    <NetworkGraph templateData={template} />
+                {#key blueprint?.id}
+                  {#if blueprint}
+                    <NetworkGraph blueprintData={blueprint} />
                   {:else}
                     <div class="rounded bg-gray-100 p-4">
                       Loading network data...
@@ -726,25 +726,25 @@
         <div
           class="rounded border-l-4 border-amber-500 bg-amber-50 p-4 text-amber-700 shadow-md"
         >
-          <p class="mb-2 font-bold">Template Not Found</p>
-          <p>Unable to find the requested template.</p>
+          <p class="mb-2 font-bold">Blueprint Not Found</p>
+          <p>Unable to find the requested blueprint.</p>
           <a
-            href="/templates"
+            href="/blueprints"
             class="mt-4 inline-block rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
           >
-            Back to Templates
+            Back to Blueprints
           </a>
         </div>
       {/if}
       
       <!-- Delete confirmation modal -->
-      {#if showDeleteConfirm && template}
+      {#if showDeleteConfirm && blueprint}
         <div class="fixed inset-0 z-50 flex items-center justify-center">
           <!-- Backdrop -->
           <div 
             class="absolute inset-0 bg-gray-800 bg-opacity-75 transition-opacity"
-            on:click={() => !deletingTemplate && (showDeleteConfirm = false)}
-            on:keydown={(e) => e.key === 'Escape' && !deletingTemplate && (showDeleteConfirm = false)}
+            on:click={() => !deletingBlueprint && (showDeleteConfirm = false)}
+            on:keydown={(e) => e.key === 'Escape' && !deletingBlueprint && (showDeleteConfirm = false)}
             role="presentation"
           ></div>
           
@@ -767,10 +767,10 @@
                   />
                 </svg>
                 <h3 class="text-xl font-bold text-gray-900">
-                  Delete Template
+                  Delete Blueprint
                 </h3>
                 <p class="mt-2 text-gray-600">
-                  Are you sure you want to delete <strong>{template.name}</strong>? This action cannot be undone.
+                  Are you sure you want to delete <strong>{blueprint.name}</strong>? This action cannot be undone.
                 </p>
               </div>
               
@@ -778,16 +778,16 @@
                 <button
                   class="rounded border border-gray-300 bg-white px-4 py-2 text-gray-700 hover:bg-gray-50"
                   on:click={() => (showDeleteConfirm = false)}
-                  disabled={deletingTemplate}
+                  disabled={deletingBlueprint}
                 >
                   Cancel
                 </button>
                 <button
                   class="rounded bg-red-500 px-4 py-2 text-white hover:bg-red-600 disabled:opacity-70"
-                  on:click={() => deleteTemplate(template.id)}
-                  disabled={deletingTemplate}
+                  on:click={() => deleteBlueprint(blueprint.id)}
+                  disabled={deletingBlueprint}
                 >
-                  {#if deletingTemplate}
+                  {#if deletingBlueprint}
                     <span class="flex items-center">
                       <svg
                         class="mr-2 -ml-1 h-4 w-4 animate-spin text-white"

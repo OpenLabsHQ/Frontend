@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation'
-  import { templateWizard, type TemplateVPC } from '$lib/stores/template-wizard'
+  import { blueprintWizard, type BlueprintVPC } from '$lib/stores/blueprint-wizard'
   import { onMount } from 'svelte'
 
   // VPC form data
@@ -8,7 +8,7 @@
   let cidr = ''
 
   // List of VPCs already added
-  let vpcs: TemplateVPC[] = []
+  let vpcs: BlueprintVPC[] = []
 
   // Form validation
   let errors = {
@@ -19,13 +19,13 @@
   // Initialize from store
   onMount(() => {
     // Check if we have range details before proceeding
-    if (!$templateWizard.name) {
-      goto('/templates/create')
+    if (!$blueprintWizard.name) {
+      goto('/blueprints/create')
       return
     }
 
     // Load existing VPCs
-    vpcs = [...$templateWizard.vpcs]
+    vpcs = [...$blueprintWizard.vpcs]
   })
 
   function validateForm() {
@@ -63,14 +63,14 @@
   function addVPC() {
     if (validateForm()) {
       // Create new VPC
-      const newVPC: TemplateVPC = {
+      const newVPC: BlueprintVPC = {
         name,
         cidr,
         subnets: [],
       }
 
       // Add to store
-      templateWizard.addVPC(newVPC)
+      blueprintWizard.addVPC(newVPC)
 
       // Update local list
       vpcs = [...vpcs, newVPC]
@@ -82,7 +82,7 @@
   }
 
   function removeVPC(index: number) {
-    templateWizard.removeVPC(index)
+    blueprintWizard.removeVPC(index)
     vpcs = vpcs.filter((_, i) => i !== index)
   }
 
@@ -94,12 +94,12 @@
       return
     }
     validationError = ''
-    goto('/templates/create/subnet')
+    goto('/blueprints/create/subnet')
   }
 </script>
 
 <svelte:head>
-  <title>VPC Configuration | Create Template</title>
+  <title>VPC Configuration | Create Blueprint</title>
 </svelte:head>
 
 <div class="mx-auto max-w-4xl rounded-lg bg-white p-6 shadow-sm">
@@ -223,7 +223,7 @@
     <button
       type="button"
       class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
-      on:click={() => goto('/templates/create')}
+      on:click={() => goto('/blueprints/create')}
     >
       Back
     </button>

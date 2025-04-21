@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { authApi, userApi, rangesApi, templatesApi } from '../../../src/lib/api';
+import { authApi, userApi, rangesApi, blueprintsApi } from '../../../src/lib/api';
 import { config } from '../../../src/lib/config';
 
 // Mock console.error to prevent test logs being cluttered
@@ -167,8 +167,8 @@ describe('API Endpoints', () => {
       );
     });
     
-    it('getTemplates endpoint uses correct URL', async () => {
-      await rangesApi.getTemplates();
+    it('getBlueprints endpoint uses correct URL', async () => {
+      await rangesApi.getBlueprints();
       
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining('/api/v1/blueprints/ranges'),
@@ -179,12 +179,12 @@ describe('API Endpoints', () => {
       );
     });
     
-    it('getTemplateById endpoint uses correct URL with ID parameter', async () => {
-      const templateId = '12345';
-      await rangesApi.getTemplateById(templateId);
+    it('getBlueprintById endpoint uses correct URL with ID parameter', async () => {
+      const blueprintId = '12345';
+      await rangesApi.getBlueprintById(blueprintId);
       
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining(`/api/v1/blueprints/ranges/${templateId}`),
+        expect.stringContaining(`/api/v1/blueprints/ranges/${blueprintId}`),
         expect.objectContaining({
           method: 'GET',
           credentials: 'include'
@@ -192,41 +192,41 @@ describe('API Endpoints', () => {
       );
     });
     
-    it('createTemplate endpoint uses correct URL and method', async () => {
-      const templateData = { name: 'Test Template', description: 'Test description' };
-      await rangesApi.createTemplate(templateData);
+    it('createBlueprint endpoint uses correct URL and method', async () => {
+      const blueprintData = { name: 'Test Blueprint', description: 'Test description' };
+      await rangesApi.createBlueprint(blueprintData);
       
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining('/api/v1/blueprints/ranges'),
         expect.objectContaining({
           method: 'POST',
-          body: expect.stringContaining('Test Template'),
+          body: expect.stringContaining('Test Blueprint'),
           credentials: 'include'
         })
       );
     });
     
-    it('deployTemplate endpoint uses correct URL and payload format', async () => {
-      const templateId = '54321';
-      await rangesApi.deployTemplate(templateId);
+    it('deployBlueprint endpoint uses correct URL and payload format', async () => {
+      const blueprintId = '54321';
+      await rangesApi.deployBlueprint(blueprintId);
       
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining('/api/v1/ranges/deploy'),
         expect.objectContaining({
           method: 'POST',
-          body: expect.stringContaining(templateId),
+          body: expect.stringContaining('blueprint_id'),
           credentials: 'include'
         })
       );
     });
   });
   
-  describe('templatesApi', () => {
-    it('getVpcTemplates should call rangesApi.getRanges', async () => {
+  describe('blueprintsApi', () => {
+    it('getVpcBlueprints should call rangesApi.getRanges', async () => {
       // Setup spy on rangesApi.getRanges
       const getRangesSpy = vi.spyOn(rangesApi, 'getRanges');
       
-      await templatesApi.getVpcTemplates();
+      await blueprintsApi.getVpcBlueprints();
       
       expect(getRangesSpy).toHaveBeenCalled();
     });
@@ -238,14 +238,14 @@ describe('API Endpoints', () => {
         auth: authApi, 
         user: userApi, 
         ranges: rangesApi, 
-        templates: templatesApi 
+        blueprints: blueprintsApi 
       };
       
       // Verify the structure of the default export
       expect(api.auth).toBeDefined();
       expect(api.user).toBeDefined();
       expect(api.ranges).toBeDefined();
-      expect(api.templates).toBeDefined();
+      expect(api.blueprints).toBeDefined();
     });
   });
 });

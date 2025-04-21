@@ -81,19 +81,19 @@
   let alertType: 'success' | 'error' | 'warning' | 'info' = 'warning'
   let alertTimeout: any = null
   
-  // Template management state
-  let workspaceTemplates = []
-  let availableTemplates = []
-  let isTemplateLoading = false
-  let isLoadingAvailableTemplates = false
-  let showShareTemplateDialog = false
-  let selectedTemplateId = ''
-  let isSharingTemplate = false
-  let shareTemplateError = ''
-  let showRemoveTemplateConfirm = false
-  let templateToRemove = null
-  let isRemovingTemplate = false
-  let removeTemplateError = ''
+  // Blueprint management state
+  let workspaceBlueprints = []
+  let availableBlueprints = []
+  let isBlueprintLoading = false
+  let isLoadingAvailableBlueprints = false
+  let showShareBlueprintDialog = false
+  let selectedBlueprintId = ''
+  let isSharingBlueprint = false
+  let shareBlueprintError = ''
+  let showRemoveBlueprintConfirm = false
+  let BlueprintToRemove = null
+  let isRemovingBlueprint = false
+  let removeBlueprintError = ''
   
   // Initialize data when component mounts
   onMount(async () => {
@@ -117,8 +117,8 @@
       // Then load workspace data
       await loadWorkspaceData(data.workspaceId)
       
-      // Also load workspace templates
-      await loadWorkspaceTemplates(data.workspaceId)
+      // Also load workspace blueprints
+      await loadWorkspaceBlueprints(data.workspaceId)
     }
   })
   
@@ -512,231 +512,231 @@
     }
   }
   
-  // Load templates shared with this workspace
-  async function loadWorkspaceTemplates(workspaceId: string) {
+  // Load blueprints shared with this workspace
+  async function loadWorkspaceBlueprints(workspaceId: string) {
     if (!workspaceId) return;
     
     try {
-      isTemplateLoading = true;
+      isBlueprintLoading = true;
       
-      // Get templates shared with the workspace
-      const response = await workspacesApi.getWorkspaceTemplates(workspaceId);
+      // Get blueprints shared with the workspace
+      const response = await workspacesApi.getWorkspaceBlueprints(workspaceId);
       
       if (response.error) {
         error = response.error;
-        workspaceTemplates = [];
+        workspaceBlueprints = [];
         return;
       }
       
       if (!response.data) {
-        workspaceTemplates = [];
+        workspaceBlueprints = [];
         return;
       }
       
-      const sharedTemplates = response.data;
-      console.log('Workspace template records loaded:', sharedTemplates);
+      const sharedBlueprints = response.data;
+      console.log('Workspace blueprint records loaded:', sharedBlueprints);
       
-      // Now we need to fetch the actual template details for each shared template
-      // Create a new array to hold the enhanced templates
-      const enhancedTemplates = [];
+      // Now we need to fetch the actual blueprint details for each shared blueprint
+      // Create a new array to hold the enhanced blueprints
+      const enhancedBlueprints = [];
       
-      // Fetch each template's details individually using the specific endpoint
-      for (const sharedTemplate of sharedTemplates) {
+      // Fetch each blueprint's details individually using the specific endpoint
+      for (const sharedBlueprint of sharedBlueprints) {
         try {
-          // Get the specific template by its ID
-          const templateResponse = await rangesApi.getTemplateById(sharedTemplate.template_id);
+          // Get the specific blueprint by its ID
+          const blueprintResponse = await rangesApi.getBlueprintById(sharedBlueprint.blueprint_id);
           
           // Store the original sharing record ID before we enhance
-          const originalId = sharedTemplate.id;
+          const originalId = sharedBlueprint.id;
                 
-          if (templateResponse.error) {
-            console.warn(`Error fetching template ${sharedTemplate.template_id}:`, templateResponse.error);
+          if (blueprintResponse.error) {
+            console.warn(`Error fetching blueprint ${sharedBlueprint.blueprint_id}:`, blueprintResponse.error);
             // Add a placeholder entry
-            enhancedTemplates.push({
-              ...sharedTemplate,
+            enhancedBlueprints.push({
+              ...sharedBlueprint,
               // Keep the original ID for unsharing
               id: originalId,
-              name: `Template ${sharedTemplate.template_id.substring(0, 8)}`,
+              name: `Blueprint ${sharedBlueprint.blueprint_id.substring(0, 8)}`,
               provider: 'unknown',
-              description: 'Template details not available',
+              description: 'Blueprint details not available',
               vnc: false,
               vpn: false
             });
-          } else if (templateResponse.data) {
-            // Merge the template details with the shared template record
-            enhancedTemplates.push({
-              ...sharedTemplate,
+          } else if (blueprintResponse.data) {
+            // Merge the blueprint details with the shared blueprint record
+            enhancedBlueprints.push({
+              ...sharedBlueprint,
               // Keep the original ID for unsharing
               id: originalId,
-              name: templateResponse.data.name,
-              provider: templateResponse.data.provider,
-              description: templateResponse.data.description,
-              vnc: templateResponse.data.vnc,
-              vpn: templateResponse.data.vpn
+              name: blueprintResponse.data.name,
+              provider: blueprintResponse.data.provider,
+              description: blueprintResponse.data.description,
+              vnc: blueprintResponse.data.vnc,
+              vpn: blueprintResponse.data.vpn
             });
           } else {
             // Fallback if no data
-            enhancedTemplates.push({
-              ...sharedTemplate,
+            enhancedBlueprints.push({
+              ...sharedBlueprint,
               // Keep the original ID for unsharing
               id: originalId,
-              name: `Template ${sharedTemplate.template_id.substring(0, 8)}`,
+              name: `Blueprint ${sharedBlueprint.blueprint_id.substring(0, 8)}`,
               provider: 'unknown',
-              description: 'No template data returned',
+              description: 'No blueprint data returned',
               vnc: false,
               vpn: false
             });
           }
         } catch (err) {
-          console.error(`Failed to fetch template ${sharedTemplate.template_id}:`, err);
+          console.error(`Failed to fetch blueprint ${sharedBlueprint.blueprint_id}:`, err);
           // Add placeholder on error
-          const originalId = sharedTemplate.id;
-          enhancedTemplates.push({
-            ...sharedTemplate,
+          const originalId = sharedBlueprint.id;
+          enhancedBlueprints.push({
+            ...sharedBlueprint,
             // Keep the original ID for unsharing
             id: originalId,
-            name: `Template ${sharedTemplate.template_id.substring(0, 8)}`,
+            name: `Blueprint ${sharedBlueprint.blueprint_id.substring(0, 8)}`,
             provider: 'unknown',
-            description: 'Error loading template details',
+            description: 'Error loading blueprint details',
             vnc: false,
             vpn: false
           });
         }
       }
       
-      workspaceTemplates = enhancedTemplates;
-      console.log('Enhanced workspace templates:', workspaceTemplates);
+      workspaceBlueprints = enhancedBlueprints;
+      console.log('Enhanced workspace blueprints:', workspaceBlueprints);
     } catch (err) {
-      console.error("Failed to load workspace templates:", err);
-      workspaceTemplates = [];
+      console.error("Failed to load workspace blueprints:", err);
+      workspaceBlueprints = [];
     } finally {
-      isTemplateLoading = false;
+      isBlueprintLoading = false;
     }
   }
   
-  // Load templates that can be shared with the workspace
-  async function loadAvailableTemplates() {
+  // Load blueprints that can be shared with the workspace
+  async function loadAvailableBlueprints() {
     if (!workspace) return;
     
     try {
-      isLoadingAvailableTemplates = true;
-      shareTemplateError = '';
+      isLoadingAvailableBlueprints = true;
+      shareBlueprintError = '';
       
-      // Get all templates the user owns
-      const response = await rangesApi.getTemplates();
+      // Get all blueprints the user owns
+      const response = await rangesApi.getBlueprints();
       
       if (response.error) {
-        shareTemplateError = response.error;
-        availableTemplates = [];
+        shareBlueprintError = response.error;
+        availableBlueprints = [];
         return;
       }
       
       if (!response.data) {
-        availableTemplates = [];
+        availableBlueprints = [];
         return;
       }
       
-      console.log('Templates from API:', response.data);
+      console.log('Blueprints from API:', response.data);
       
-      // Get all templates already shared with workspace (use template_id, not the sharing record id)
-      const workspaceTemplateIds = new Set(workspaceTemplates.map(t => t.template_id));
-      console.log('Already shared template IDs:', [...workspaceTemplateIds]);
+      // Get all blueprints already shared with workspace (use blueprint_id, not the sharing record id)
+      const workspaceBlueprintIds = new Set(workspaceBlueprints.map(t => t.blueprint_id));
+      console.log('Already shared blueprint IDs:', [...workspaceBlueprintIds]);
       
-      // Filter out templates already shared with the workspace
-      availableTemplates = response.data.filter(template => !workspaceTemplateIds.has(template.id));
+      // Filter out blueprints already shared with the workspace
+      availableBlueprints = response.data.filter(blueprint => !workspaceBlueprintIds.has(blueprint.id));
       
     } catch (err) {
-      shareTemplateError = err instanceof Error ? err.message : 'Failed to load available templates';
-      availableTemplates = [];
+      shareBlueprintError = err instanceof Error ? err.message : 'Failed to load available blueprints';
+      availableBlueprints = [];
     } finally {
-      isLoadingAvailableTemplates = false;
+      isLoadingAvailableBlueprints = false;
     }
   }
   
-  // Show the template sharing dialog
-  async function showShareTemplate() {
-    showShareTemplateDialog = true;
-    shareTemplateError = '';
-    selectedTemplateId = '';
-    await loadAvailableTemplates();
+  // Show the blueprint sharing dialog
+  async function showShareBlueprint() {
+    showShareBlueprintDialog = true;
+    shareBlueprintError = '';
+    selectedBlueprintId = '';
+    await loadAvailableBlueprints();
   }
   
-  // Share a template with the workspace
-  async function shareTemplate() {
-    if (!workspace || !selectedTemplateId) return;
+  // Share a blueprint with the workspace
+  async function shareBlueprint() {
+    if (!workspace || !selectedBlueprintId) return;
     
     try {
-      isSharingTemplate = true;
-      shareTemplateError = '';
+      isSharingBlueprint = true;
+      shareBlueprintError = '';
       
-      console.log('Sharing template ID:', selectedTemplateId);
+      console.log('Sharing blueprint ID:', selectedBlueprintId);
       
-      // Find the selected template to log details
-      const selectedTemplate = availableTemplates.find(t => t.id === selectedTemplateId);
-      console.log('Selected template for sharing:', selectedTemplate);
+      // Find the selected blueprint to log details
+      const selectedBlueprint = availableBlueprints.find(t => t.id === selectedBlueprintId);
+      console.log('Selected blueprint for sharing:', selectedBlueprint);
       
-      const response = await workspacesApi.shareTemplateWithWorkspace(workspace.id, selectedTemplateId);
-      console.log('Template share API response:', response);
+      const response = await workspacesApi.shareBlueprintWithWorkspace(workspace.id, selectedBlueprintId);
+      console.log('Blueprint share API response:', response);
       
       if (response.error) {
-        shareTemplateError = response.error;
+        shareBlueprintError = response.error;
         return;
       }
       
-      // Template shared successfully, reload templates
-      await loadWorkspaceTemplates(workspace.id);
+      // Blueprint shared successfully, reload blueprints
+      await loadWorkspaceBlueprints(workspace.id);
       
       // Reset form and close dialog
-      showShareTemplateDialog = false;
-      selectedTemplateId = '';
+      showShareBlueprintDialog = false;
+      selectedBlueprintId = '';
       
     } catch (err) {
-      shareTemplateError = err instanceof Error ? err.message : 'Failed to share template';
+      shareBlueprintError = err instanceof Error ? err.message : 'Failed to share blueprint';
     } finally {
-      isSharingTemplate = false;
+      isSharingBlueprint = false;
     }
   }
   
-  // Show confirmation to remove a template from workspace
-  function confirmRemoveTemplate(template) {
-    templateToRemove = template;
-    showRemoveTemplateConfirm = true;
-    removeTemplateError = '';
+  // Show confirmation to remove a blueprint from workspace
+  function confirmRemoveBlueprint(blueprint) {
+    blueprintToRemove = blueprint;
+    showRemoveBlueprintConfirm = true;
+    removeBlueprintError = '';
   }
   
-  // Remove a template from the workspace
-  async function removeTemplate() {
-    if (!workspace || !templateToRemove) return;
+  // Remove a blueprint from the workspace
+  async function removeBlueprint() {
+    if (!workspace || !blueprintToRemove) return;
     
     try {
-      isRemovingTemplate = true;
-      removeTemplateError = '';
+      isRemovingBlueprint = true;
+      removeBlueprintError = '';
       
-      console.log('Removing template:', templateToRemove);
+      console.log('Removing blueprint:', blueprintToRemove);
       
-      // IMPORTANT: We must use the template_id for unsharing, not the sharing record ID
-      // This should match the same ID used for viewing template details
-      const templateId = templateToRemove.template_id;
-      console.log('Using template ID for removal:', templateId);
+      // IMPORTANT: We must use the blueprint_id for unsharing, not the sharing record ID
+      // This should match the same ID used for viewing blueprint details
+      const blueprintId = blueprintToRemove.blueprint_id;
+      console.log('Using blueprint ID for removal:', blueprintId);
       
-      const response = await workspacesApi.removeTemplateFromWorkspace(workspace.id, templateId);
+      const response = await workspacesApi.removeBlueprintFromWorkspace(workspace.id, blueprintId);
       
       if (response.error) {
-        removeTemplateError = response.error;
+        removeBlueprintError = response.error;
         return;
       }
       
-      // Template removed successfully, reload templates
-      await loadWorkspaceTemplates(workspace.id);
+      // Blueprint removed successfully, reload blueprints
+      await loadWorkspaceBlueprints(workspace.id);
       
       // Reset state and close confirmation dialog
-      showRemoveTemplateConfirm = false;
-      templateToRemove = null;
+      showRemoveBlueprintConfirm = false;
+      blueprintToRemove = null;
       
     } catch (err) {
-      removeTemplateError = err instanceof Error ? err.message : 'Failed to remove template';
+      removeBlueprintError = err instanceof Error ? err.message : 'Failed to remove blueprint';
     } finally {
-      isRemovingTemplate = false;
+      isRemovingBlueprint = false;
     }
   }
   
@@ -1446,60 +1446,60 @@
               {/if}
             </div>
             
-            <!-- Templates Section -->
+            <!-- Blueprints Section -->
             <div class="overflow-hidden rounded-lg bg-white shadow">
               <div class="bg-gradient-to-r from-blue-600 to-blue-700 p-4 text-white">
                 <div class="flex items-center justify-between">
                   <div>
-                    <h2 class="text-lg font-semibold">Workspace Templates</h2>
-                    <p class="text-sm text-blue-100">Templates shared with workspace members</p>
+                    <h2 class="text-lg font-semibold">Workspace Blueprints</h2>
+                    <p class="text-sm text-blue-100">Blueprints shared with workspace members</p>
                   </div>
                   {#if workspace?.is_admin}
                     <button
                       class="flex items-center rounded-md bg-white px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50"
-                      on:click={showShareTemplate}
+                      on:click={showShareBlueprint}
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" class="mr-1 h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                         <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
                       </svg>
-                      Share Template
+                      Share Blueprint
                     </button>
                   {/if}
                 </div>
               </div>
               
-              <!-- Share Template Dialog -->
-              {#if showShareTemplateDialog && workspace?.is_admin}
+              <!-- Share Blueprint Dialog -->
+              {#if showShareBlueprintDialog && workspace?.is_admin}
                 <div class="border-b bg-gradient-to-b from-blue-50 to-white p-6">
-                  <h3 class="mb-4 text-lg font-medium text-blue-800">Share Template with Workspace</h3>
+                  <h3 class="mb-4 text-lg font-medium text-blue-800">Share Blueprint with Workspace</h3>
                   
-                  {#if shareTemplateError}
+                  {#if shareBlueprintError}
                     <div class="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-700 border border-red-200">
                       <div class="flex">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-red-400" viewBox="0 0 20 20" fill="currentColor">
                           <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
                         </svg>
-                        <p>{shareTemplateError}</p>
+                        <p>{shareBlueprintError}</p>
                       </div>
                     </div>
                   {/if}
                   
                   <div class="mb-4">
-                    <label for="template" class="mb-1 block text-sm font-medium text-gray-700">
-                      Select Template to Share *
+                    <label for="blueprint" class="mb-1 block text-sm font-medium text-gray-700">
+                      Select Blueprint to Share *
                     </label>
-                    {#if isLoadingAvailableTemplates}
-                      <div class="py-2 text-sm text-gray-500">Loading templates...</div>
-                    {:else if availableTemplates.length > 0}
+                    {#if isLoadingAvailableBlueprints}
+                      <div class="py-2 text-sm text-gray-500">Loading blueprints...</div>
+                    {:else if availableBlueprints.length > 0}
                       <div class="relative">
                         <select
-                          id="template"
+                          id="blueprint"
                           class="block w-full appearance-none rounded-md border border-gray-300 py-2 pl-3 pr-10 text-base focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-                          bind:value={selectedTemplateId}
+                          bind:value={selectedBlueprintId}
                         >
-                          <option value="" disabled selected>Select a template...</option>
-                          {#each availableTemplates as template}
-                            <option value={template.id}>{template.name} ({template.provider})</option>
+                          <option value="" disabled selected>Select a blueprint...</option>
+                          {#each availableBlueprints as blueprint}
+                            <option value={blueprint.id}>{blueprint.name} ({blueprint.provider})</option>
                           {/each}
                         </select>
                         <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
@@ -1509,7 +1509,7 @@
                         </div>
                       </div>
                       <p class="mt-1 text-xs text-gray-500">
-                        Choose a template to share with all workspace members
+                        Choose a blueprint to share with all workspace members
                       </p>
                     {:else}
                       <div class="rounded-md bg-yellow-50 p-3 text-sm text-yellow-700 border border-yellow-200">
@@ -1517,11 +1517,11 @@
                           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
                           </svg>
-                          <p>No templates available to share</p>
+                          <p>No blueprints available to share</p>
                         </div>
                       </div>
                       <p class="mt-2 text-xs text-gray-500">
-                        <a href="/templates/create" class="text-blue-600 hover:text-blue-800">Create a new template</a> first
+                        <a href="/blueprints/create" class="text-blue-600 hover:text-blue-800">Create a new blueprint</a> first
                       </p>
                     {/if}
                   </div>
@@ -1530,18 +1530,18 @@
                     <button
                       type="button"
                       class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
-                      on:click={() => (showShareTemplateDialog = false)}
-                      disabled={isSharingTemplate}
+                      on:click={() => (showShareBlueprintDialog = false)}
+                      disabled={isSharingBlueprint}
                     >
                       Cancel
                     </button>
                     <button
                       type="button"
-                      class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none {isSharingTemplate || !selectedTemplateId || availableTemplates.length === 0 ? 'cursor-not-allowed opacity-70' : ''}"
-                      on:click={shareTemplate}
-                      disabled={isSharingTemplate || !selectedTemplateId || availableTemplates.length === 0}
+                      class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none {isSharingBlueprint || !selectedBlueprintId || availableBlueprints.length === 0 ? 'cursor-not-allowed opacity-70' : ''}"
+                      on:click={shareBlueprint}
+                      disabled={isSharingBlueprint || !selectedBlueprintId || availableBlueprints.length === 0}
                     >
-                      {#if isSharingTemplate}
+                      {#if isSharingBlueprint}
                         <span class="flex items-center">
                           <svg
                             class="mr-2 -ml-1 h-4 w-4 animate-spin text-white"
@@ -1566,53 +1566,53 @@
                           Sharing...
                         </span>
                       {:else}
-                        Share Template
+                        Share Blueprint
                       {/if}
                     </button>
                   </div>
                 </div>
               {/if}
               
-              <!-- Workspace Templates List -->
-              {#if isTemplateLoading}
+              <!-- Workspace Blueprints List -->
+              {#if isBlueprintLoading}
                 <div class="flex justify-center p-12">
-                  <LoadingSpinner size="small" message="Loading shared templates..." />
+                  <LoadingSpinner size="small" message="Loading shared blueprints..." />
                 </div>
-              {:else if workspaceTemplates.length > 0}
+              {:else if workspaceBlueprints.length > 0}
                 <div class="overflow-x-auto">
                   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
-                    {#each workspaceTemplates as template}
+                    {#each workspaceBlueprints as blueprint}
                       <div class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm hover:shadow-md transition-all duration-200">
                         <div class="border-b border-gray-200 bg-gray-50 p-3">
                           <div class="flex items-center justify-between">
-                            <h3 class="text-md font-medium text-gray-900 truncate" title={template.name}>
-                              {template.name}
+                            <h3 class="text-md font-medium text-gray-900 truncate" title={blueprint.name}>
+                              {blueprint.name}
                             </h3>
                             <span class="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
-                              {template.provider}
+                              {blueprint.provider}
                             </span>
                           </div>
                         </div>
                         
                         <div class="p-3">
-                          {#if template.description}
-                            <p class="mb-3 text-sm text-gray-600 line-clamp-2">{template.description}</p>
+                          {#if blueprint.description}
+                            <p class="mb-3 text-sm text-gray-600 line-clamp-2">{blueprint.description}</p>
                           {:else}
                             <p class="mb-3 text-sm italic text-gray-400">No description</p>
                           {/if}
                           
                           <div class="flex space-x-2 text-xs mb-3">
-                            <span class={`rounded px-2 py-1 ${template.vnc ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-400'}`}>
-                              VNC {template.vnc ? '✓' : '✗'}
+                            <span class={`rounded px-2 py-1 ${blueprint.vnc ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-400'}`}>
+                              VNC {blueprint.vnc ? '✓' : '✗'}
                             </span>
-                            <span class={`rounded px-2 py-1 ${template.vpn ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-400'}`}>
-                              VPN {template.vpn ? '✓' : '✗'}
+                            <span class={`rounded px-2 py-1 ${blueprint.vpn ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-400'}`}>
+                              VPN {blueprint.vpn ? '✓' : '✗'}
                             </span>
                           </div>
                           
                           <div class="flex border-t border-gray-100 pt-3">
                             <a
-                              href={`/templates/${template.template_id}`}
+                              href={`/blueprints/${blueprint.blueprint_id}`}
                               class="flex-1 rounded-md bg-blue-500 px-3 py-2 text-center text-sm font-medium text-white shadow-sm hover:bg-blue-600"
                             >
                               View Details
@@ -1621,7 +1621,7 @@
                             {#if workspace?.is_admin}
                               <button
                                 class="ml-2 rounded-md border border-red-300 bg-white px-3 py-2 text-sm font-medium text-red-700 shadow-sm hover:bg-red-50"
-                                on:click={() => confirmRemoveTemplate(template)}
+                                on:click={() => confirmRemoveBlueprint(blueprint)}
                               >
                                 Unshare
                               </button>
@@ -1638,18 +1638,18 @@
                     <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto mb-4 h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                    <h3 class="mb-2 text-lg font-medium text-gray-900">No templates shared in this workspace</h3>
-                    <p class="mb-6 text-gray-500">Share templates with workspace members for collaboration</p>
+                    <h3 class="mb-2 text-lg font-medium text-gray-900">No blueprints shared in this workspace</h3>
+                    <p class="mb-6 text-gray-500">Share blueprints with workspace members for collaboration</p>
                     
                     {#if workspace?.is_admin}
                       <button
                         class="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700"
-                        on:click={showShareTemplate}
+                        on:click={showShareBlueprint}
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" class="mr-2 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                           <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
                         </svg>
-                        Share your first template
+                        Share your first blueprint
                       </button>
                     {/if}
                   </div>
@@ -1657,23 +1657,23 @@
               {/if}
             </div>
             
-            <!-- Confirm Remove Template Modal -->
-            {#if showRemoveTemplateConfirm && templateToRemove}
+            <!-- Confirm Remove Blueprint Modal -->
+            {#if showRemoveBlueprintConfirm && blueprintToRemove}
               <div class="fixed inset-0 z-50 flex items-center justify-center">
                 <!-- Backdrop -->
                 <div
                   class="absolute inset-0 bg-gray-800 bg-opacity-75 transition-opacity"
-                  on:click={() => !isRemovingTemplate && (showRemoveTemplateConfirm = false)}
-                  on:keydown={(e) => e.key === 'Escape' && !isRemovingTemplate && (showRemoveTemplateConfirm = false)}
+                  on:click={() => !isRemovingBlueprint && (showRemoveBlueprintConfirm = false)}
+                  on:keydown={(e) => e.key === 'Escape' && !isRemovingBlueprint && (showRemoveBlueprintConfirm = false)}
                   role="presentation"
                 ></div>
                 
                 <!-- Modal dialog -->
                 <div class="relative w-full max-w-md rounded-lg bg-white shadow-xl">
                   <div class="p-6">
-                    {#if removeTemplateError}
+                    {#if removeBlueprintError}
                       <div class="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-700">
-                        <p>{removeTemplateError}</p>
+                        <p>{removeBlueprintError}</p>
                       </div>
                     {/if}
                     
@@ -1693,27 +1693,27 @@
                         />
                       </svg>
                       <h3 class="text-xl font-bold text-gray-900">
-                        Unshare Template
+                        Unshare Blueprint
                       </h3>
                       <p class="mt-2 text-gray-600">
-                        Are you sure you want to unshare <strong>{templateToRemove.name}</strong> from this workspace? Workspace members will no longer have access to this template.
+                        Are you sure you want to unshare <strong>{blueprintToRemove.name}</strong> from this workspace? Workspace members will no longer have access to this blueprint.
                       </p>
                     </div>
                     
                     <div class="mt-6 flex justify-end space-x-3">
                       <button
                         class="rounded border border-gray-300 bg-white px-4 py-2 text-gray-700 hover:bg-gray-50"
-                        on:click={() => (showRemoveTemplateConfirm = false)}
-                        disabled={isRemovingTemplate}
+                        on:click={() => (showRemoveBlueprintConfirm = false)}
+                        disabled={isRemovingBlueprint}
                       >
                         Cancel
                       </button>
                       <button
                         class="rounded bg-red-500 px-4 py-2 text-white hover:bg-red-600 disabled:opacity-70"
-                        on:click={removeTemplate}
-                        disabled={isRemovingTemplate}
+                        on:click={removeBlueprint}
+                        disabled={isRemovingBlueprint}
                       >
-                        {#if isRemovingTemplate}
+                        {#if isRemovingBlueprint}
                           <span class="flex items-center">
                             <svg
                               class="mr-2 -ml-1 h-4 w-4 animate-spin text-white"
@@ -1908,7 +1908,7 @@
                   Are you sure you want to remove <span class="font-semibold text-gray-900">{userToRemove.userName}</span> from this workspace?
                 </p>
                 <p class="mt-2 text-sm text-gray-500">
-                  This user will lose access to all shared templates in this workspace. They can be added back later if needed.
+                  This user will lose access to all shared blueprints in this workspace. They can be added back later if needed.
                 </p>
               </div>
               

@@ -1,18 +1,18 @@
 <script lang="ts">
   import { goto } from '$app/navigation'
-  import { templateWizard } from '$lib/stores/template-wizard'
+  import { blueprintWizard } from '$lib/stores/blueprint-wizard'
   import type { OpenLabsProvider } from '$lib/types/providers'
-  import type { TemplateRange } from '$lib/stores/template-wizard'
+  import type { BlueprintRange } from '$lib/stores/blueprint-wizard'
 
   // Form data
-  let name = $templateWizard.name || ''
-  let provider: OpenLabsProvider = $templateWizard.provider || 'aws'
-  let vnc = $templateWizard.vnc || false
-  let vpn = $templateWizard.vpn || false
+  let name = $blueprintWizard.name || ''
+  let provider: OpenLabsProvider = $blueprintWizard.provider || 'aws'
+  let vnc = $blueprintWizard.vnc || false
+  let vpn = $blueprintWizard.vpn || false
 
   // Advanced mode
   let showAdvanced = false
-  let jsonTemplate = ''
+  let jsonBlueprint = ''
   let jsonError = ''
 
   // Form validation
@@ -41,10 +41,10 @@
   function handleSubmit() {
     if (validateForm()) {
       // Save to store
-      templateWizard.setRangeDetails(name, provider, vnc, vpn)
+      blueprintWizard.setRangeDetails(name, provider, vnc, vpn)
 
       // Navigate to next step
-      goto('/templates/create/vpc')
+      goto('/blueprints/create/vpc')
     }
   }
 
@@ -53,12 +53,12 @@
       jsonError = ''
 
       // Pre-process JSON - Sometimes users might forget to use double quotes for property names
-      let processedJson = jsonTemplate
+      let processedJson = jsonBlueprint
 
       // Parse the JSON
-      let templateData
+      let blueprintData
       try {
-        templateData = JSON.parse(processedJson) as TemplateRange
+        blueprintData = JSON.parse(processedJson) as BlueprintRange
       } catch (e: any) {
         console.error('First JSON parse attempt failed:', e)
         // Show detailed error to help user fix their JSON
@@ -67,37 +67,37 @@
       }
 
       // Basic validation
-      if (!templateData) {
-        jsonError = 'Invalid JSON: template data is empty'
+      if (!blueprintData) {
+        jsonError = 'Invalid JSON: blueprint data is empty'
         return
       }
 
       // Validate minimum required structure
-      if (!templateData.name || typeof templateData.name !== 'string') {
-        jsonError = 'Template must have a name property (string)'
+      if (!blueprintData.name || typeof blueprintData.name !== 'string') {
+        jsonError = 'Blueprint must have a name property (string)'
         return
       }
 
-      if (!templateData.provider) {
-        jsonError = 'Template must have a provider property'
+      if (!blueprintData.provider) {
+        jsonError = 'Blueprint must have a provider property'
         return
       }
 
-      if (!Array.isArray(templateData.vpcs)) {
-        jsonError = 'Template must have a vpcs array property'
+      if (!Array.isArray(blueprintData.vpcs)) {
+        jsonError = 'Blueprint must have a vpcs array property'
         return
       }
 
       // Ensure all properties exist with defaults
-      templateData = {
-        ...templateData,
-        vnc: !!templateData.vnc,
-        vpn: !!templateData.vpn,
+      blueprintData = {
+        ...blueprintData,
+        vnc: !!blueprintData.vnc,
+        vpn: !!blueprintData.vpn,
       }
 
       // Ensure each VPC has required fields
-      for (let i = 0; i < templateData.vpcs.length; i++) {
-        const vpc = templateData.vpcs[i]
+      for (let i = 0; i < blueprintData.vpcs.length; i++) {
+        const vpc = blueprintData.vpcs[i]
         if (!vpc.name || typeof vpc.name !== 'string') {
           jsonError = `VPC at index ${i} must have a name property (string)`
           return
@@ -165,30 +165,30 @@
       }
 
       // Validate at least one VPC with a subnet that has hosts
-      const hasHosts = templateData.vpcs.some((vpc) =>
+      const hasHosts = blueprintData.vpcs.some((vpc) =>
         vpc.subnets.some((subnet) => subnet.hosts.length > 0)
       )
 
       if (!hasHosts) {
         jsonError =
-          'Template must have at least one VPC with a subnet containing hosts'
+          'Blueprint must have at least one VPC with a subnet containing hosts'
         return
       }
 
-      // Reset the store and set the entire template
-      templateWizard.reset()
+      // Reset the store and set the entire blueprint
+      blueprintWizard.reset()
 
       // Update basic properties
-      templateWizard.setRangeDetails(
-        templateData.name,
-        templateData.provider,
-        templateData.vnc || false,
-        templateData.vpn || false
+      blueprintWizard.setRangeDetails(
+        blueprintData.name,
+        blueprintData.provider,
+        blueprintData.vnc || false,
+        blueprintData.vpn || false
       )
 
       // Add each VPC with subnets and hosts
-      for (const vpc of templateData.vpcs) {
-        templateWizard.addVPC({
+      for (const vpc of blueprintData.vpcs) {
+        blueprintWizard.addVPC({
           name: vpc.name,
           cidr: vpc.cidr,
           subnets: vpc.subnets || [],
@@ -197,17 +197,17 @@
 
       // Wait a moment for store updates to propagate before redirecting
       setTimeout(() => {
-        goto('/templates/create/review')
+        goto('/blueprints/create/review')
       }, 200)
     } catch (error: any) {
-      jsonError = `Error processing template: ${error.message}`
-      console.error('Template processing error:', error)
+      jsonError = `Error processing blueprint: ${error.message}`
+      console.error('Blueprint processing error:', error)
     }
   }
 </script>
 
 <svelte:head>
-  <title>Range Details | Create Template</title>
+  <title>Range Details | Create Blueprint</title>
 </svelte:head>
 
 <div class="mx-auto max-w-3xl rounded-lg bg-white p-6 shadow-sm">
@@ -219,14 +219,14 @@
       <div>
         <div class="mb-2 flex items-center justify-between">
           <label
-            for="json-template"
-            class="block text-sm font-medium text-gray-700">Template JSON</label
+            for="json-blueprint"
+            class="block text-sm font-medium text-gray-700">Blueprint JSON</label
           >
           <button
             type="button"
             class="text-xs text-blue-600 hover:text-blue-800"
             on:click={() => {
-              jsonTemplate = `{
+              jsonBlueprint = `{
   "vpcs": [
     {
       "cidr": "192.168.0.0/16",
@@ -262,12 +262,12 @@
           </button>
         </div>
         <textarea
-          id="json-template"
-          bind:value={jsonTemplate}
+          id="json-blueprint"
+          bind:value={jsonBlueprint}
           rows="15"
           class="w-full rounded border border-gray-300 p-2 font-mono text-sm focus:border-blue-500 focus:ring-blue-500"
           placeholder={`{
-  "name": "my-template",
+  "name": "my-blueprint",
   "provider": "aws",
   "vnc": false,
   "vpn": true,
@@ -304,7 +304,7 @@
         <button
           type="button"
           class="mr-3 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
-          on:click={() => goto('/templates')}
+          on:click={() => goto('/blueprints')}
         >
           Cancel
         </button>
@@ -410,7 +410,7 @@
         <button
           type="button"
           class="mr-3 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
-          on:click={() => goto('/templates')}
+          on:click={() => goto('/blueprints')}
         >
           Cancel
         </button>

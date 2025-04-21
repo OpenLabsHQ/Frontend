@@ -30,62 +30,62 @@ vi.mock('vis-network/standalone', () => {
 
 describe('NetworkGraph Component', () => {
   // Test the utility functions and data structure without instantiating the component
-  describe('Template Data Processing Logic', () => {
-    it('should handle empty template data gracefully', () => {
-      // Empty template
-      const templateData = {};
+  describe('Blueprint Data Processing Logic', () => {
+    it('should handle empty blueprint data gracefully', () => {
+      // Empty blueprint
+      const blueprintData = {};
       
       // Extract VPC data function - similar to the component logic
-      function extractVpcData(template) {
+      function extractVpcData(blueprint) {
         let vpc = null;
         
-        if (template.vpc) {
-          vpc = template.vpc;
-        } else if (template.vpcs && Array.isArray(template.vpcs) && template.vpcs.length > 0) {
-          vpc = template.vpcs[0];
+        if (blueprint.vpc) {
+          vpc = blueprint.vpc;
+        } else if (blueprint.vpcs && Array.isArray(blueprint.vpcs) && blueprint.vpcs.length > 0) {
+          vpc = blueprint.vpcs[0];
         }
         
         return vpc;
       }
       
-      const vpc = extractVpcData(templateData);
+      const vpc = extractVpcData(blueprintData);
       expect(vpc).toBe(null);
     });
     
-    it('should extract VPC data correctly from different template structures', () => {
-      // Template with direct VPC
-      const template1 = {
+    it('should extract VPC data correctly from different blueprint structures', () => {
+      // Blueprint with direct VPC
+      const blueprint1 = {
         vpc: { name: 'Direct VPC', cidr: '10.0.0.0/16' }
       };
       
-      // Template with VPCs array
-      const template2 = {
+      // Blueprint with VPCs array
+      const blueprint2 = {
         vpcs: [
           { name: 'Array VPC', cidr: '10.0.0.0/16' }
         ]
       };
       
       // Extract VPC data function - similar to the component logic
-      function extractVpcData(template) {
+      function extractVpcData(blueprint) {
         let vpc = null;
         
-        if (template.vpc) {
-          vpc = template.vpc;
-        } else if (template.vpcs && Array.isArray(template.vpcs) && template.vpcs.length > 0) {
-          vpc = template.vpcs[0];
+        if (blueprint.vpc) {
+          vpc = blueprint.vpc;
+        } else if (blueprint.vpcs && Array.isArray(blueprint.vpcs) && blueprint.vpcs.length > 0) {
+          vpc = blueprint.vpcs[0];
         }
         
         return vpc;
       }
       
-      const vpc1 = extractVpcData(template1);
+      const vpc1 = extractVpcData(blueprint1);
       expect(vpc1.name).toBe('Direct VPC');
       
-      const vpc2 = extractVpcData(template2);
+      const vpc2 = extractVpcData(blueprint2);
       expect(vpc2.name).toBe('Array VPC');
     });
     
-    it('should find subnets in different locations within the template', () => {
+    it('should find subnets in different locations within the blueprint', () => {
       // Subnet finding function - similar to the component logic
       function findSubnets(vpc) {
         let rawSubnets = null;

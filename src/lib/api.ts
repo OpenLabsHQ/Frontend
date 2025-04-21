@@ -372,7 +372,7 @@ export const rangesApi = {
     return await apiRequest<any>(`/api/v1/ranges/${id}`, 'GET', undefined, true)
   },
 
-  getTemplates: async () => {
+  getBlueprints: async () => {
     return await apiRequest<any[]>(
       '/api/v1/blueprints/ranges',
       'GET',
@@ -381,7 +381,7 @@ export const rangesApi = {
     )
   },
 
-  getTemplateById: async (id: string) => {
+  getBlueprintById: async (id: string) => {
     return await apiRequest<any>(
       `/api/v1/blueprints/ranges/${id}`,
       'GET',
@@ -390,18 +390,18 @@ export const rangesApi = {
     )
   },
 
-  createTemplate: async (templateData: any) => {
+  createBlueprint: async (blueprintData: any) => {
     return await apiRequest<any>(
       '/api/v1/blueprints/ranges',
       'POST',
-      templateData,
+      blueprintData,
       true
     )
   },
 
-  // Deploy a range from a template
-  deployTemplate: async (
-    templateId: string,
+  // Deploy a range from a blueprint
+  deployBlueprint: async (
+    blueprintId: string,
     name: string,
     description: string,
     region: 'us_east_1' | 'us_east_2',
@@ -411,7 +411,7 @@ export const rangesApi = {
       '/api/v1/ranges/deploy',
       'POST',
       {
-        template_id: templateId,
+        blueprint_id: parseInt(blueprintId), // Convert to int as IDs are now integers
         name,
         description,
         region,
@@ -421,10 +421,10 @@ export const rangesApi = {
     )
   },
 
-  // Delete a template by ID
-  deleteTemplate: async (templateId: string) => {
+  // Delete a blueprint by ID
+  deleteBlueprint: async (blueprintId: string) => {
     return await apiRequest<any>(
-      `/api/v1/blueprints/ranges/${templateId}`,
+      `/api/v1/blueprints/ranges/${blueprintId}`,
       'DELETE',
       undefined,
       true
@@ -432,8 +432,8 @@ export const rangesApi = {
   },
 }
 
-export const templatesApi = {
-  getVpcTemplates: async () => {
+export const blueprintsApi = {
+  getVpcBlueprints: async () => {
     return await rangesApi.getRanges()
   },
 }
@@ -534,8 +534,8 @@ export const workspacesApi = {
     )
   },
 
-  // Get templates shared in a workspace
-  getWorkspaceTemplates: async (workspaceId: string) => {
+  // Get blueprints shared in a workspace
+  getWorkspaceBlueprints: async (workspaceId: string) => {
     return await apiRequest<any[]>(
       `/api/v1/workspaces/${workspaceId}/blueprints`,
       'GET',
@@ -544,21 +544,21 @@ export const workspacesApi = {
     )
   },
 
-  // Share a template with a workspace
-  shareTemplateWithWorkspace: async (workspaceId: string, templateId: string) => {
+  // Share a blueprint with a workspace
+  shareBlueprintWithWorkspace: async (workspaceId: string, blueprintId: string) => {
     return await apiRequest<{success: boolean}>(
       `/api/v1/workspaces/${workspaceId}/blueprints`,
       'POST',
-      { template_id: templateId },
+      { blueprint_id: parseInt(blueprintId) },
       true
     )
   },
 
-  // Remove a template from a workspace
-  // Note: templateId should be the actual template ID (not the sharing record ID)
-  removeTemplateFromWorkspace: async (workspaceId: string, templateId: string) => {
+  // Remove a blueprint from a workspace
+  // Note: blueprintId should be the actual blueprint ID (not the sharing record ID)
+  removeBlueprintFromWorkspace: async (workspaceId: string, blueprintId: string) => {
     return await apiRequest<{success: boolean}>(
-      `/api/v1/workspaces/${workspaceId}/blueprints/${templateId}`,
+      `/api/v1/workspaces/${workspaceId}/blueprints/${blueprintId}`,
       'DELETE',
       undefined,
       true
@@ -570,6 +570,6 @@ export default {
   auth: authApi,
   user: userApi,
   ranges: rangesApi,
-  templates: templatesApi,
+  blueprints: blueprintsApi,
   workspaces: workspacesApi,
 }

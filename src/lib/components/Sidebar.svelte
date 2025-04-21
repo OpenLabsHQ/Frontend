@@ -2,7 +2,7 @@
   import { auth } from '$lib/stores/auth'
   import { onMount } from 'svelte'
 
-  // For easier access to user data in the template
+  // For easier access to user data in the blueprint
   $: userName = $auth.user?.name || 'Account'
 
   // Fetch user data on component mount
@@ -40,10 +40,10 @@
     Deployed Ranges
   </a>
   <a
-    href="/templates"
+    href="/blueprints"
     class="w-7/8 rounded-full bg-blue-500 px-4 py-3 text-center font-bold text-white hover:bg-blue-700"
   >
-    Range Templates
+    Blueprints
   </a>
   <a
     href="/workspaces"

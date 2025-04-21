@@ -10,8 +10,8 @@ vi.mock('$app/navigation', () => ({
 
 vi.mock('../../../src/lib/api', () => ({
   rangesApi: {
-    getTemplateById: vi.fn(),
-    deployTemplate: vi.fn()
+    getBlueprintById: vi.fn(),
+    deployBlueprint: vi.fn()
   }
 }));
 
@@ -37,8 +37,8 @@ vi.mock('../../../src/lib/stores/auth', () => {
   };
 });
 
-describe('Template Detail Page', () => {
-  const templateId = 'template-123';
+describe('Blueprint Detail Page', () => {
+  const blueprintId = 'blueprint-123';
   
   beforeEach(() => {
     vi.resetAllMocks();
@@ -47,13 +47,13 @@ describe('Template Detail Page', () => {
   });
   
   describe('Page load and data fetching', () => {
-    it('loads template data correctly when API call succeeds', async () => {
+    it('loads blueprint data correctly when API call succeeds', async () => {
       // Mock successful API response
-      rangesApi.getTemplateById.mockResolvedValueOnce({
+      rangesApi.getBlueprintById.mockResolvedValueOnce({
         data: {
-          id: templateId,
-          name: 'Test Template',
-          description: 'A test template',
+          id: blueprintId,
+          name: 'Test Blueprint',
+          description: 'A test blueprint',
           vpc: {
             cidr_block: '10.0.0.0/16'
           },
@@ -70,63 +70,63 @@ describe('Template Detail Page', () => {
       // Simulate the page load function (from +page.ts)
       const load = ({ params }) => {
         return {
-          templateId: params.id
+          blueprintId: params.id
         };
       };
       
-      // Get the template ID from the load function
-      const pageData = load({ params: { id: templateId } });
-      expect(pageData.templateId).toBe(templateId);
+      // Get the blueprint ID from the load function
+      const pageData = load({ params: { id: blueprintId } });
+      expect(pageData.blueprintId).toBe(blueprintId);
       
-      // Simulate the component's template loading logic
-      let template = null;
+      // Simulate the component's blueprint loading logic
+      let blueprint = null;
       let isLoading = true;
       let error = '';
       
       try {
-        const result = await rangesApi.getTemplateById(pageData.templateId);
+        const result = await rangesApi.getBlueprintById(pageData.blueprintId);
         isLoading = false;
         
         if (result.error) {
           error = result.error;
         } else if (result.data) {
-          template = result.data;
+          blueprint = result.data;
         }
       } catch (err) {
         isLoading = false;
         error = 'An unexpected error occurred';
       }
       
-      // Verify template loaded correctly
+      // Verify blueprint loaded correctly
       expect(isLoading).toBe(false);
       expect(error).toBe('');
-      expect(template).not.toBeNull();
-      expect(template.id).toBe(templateId);
-      expect(template.vpc).toBeDefined();
-      expect(template.subnets).toHaveLength(2);
-      expect(template.hosts).toHaveLength(1);
+      expect(blueprint).not.toBeNull();
+      expect(blueprint.id).toBe(blueprintId);
+      expect(blueprint.vpc).toBeDefined();
+      expect(blueprint.subnets).toHaveLength(2);
+      expect(blueprint.hosts).toHaveLength(1);
     });
     
-    it('handles API error when template is not found', async () => {
+    it('handles API error when blueprint is not found', async () => {
       // Mock 404 API response
-      rangesApi.getTemplateById.mockResolvedValueOnce({
+      rangesApi.getBlueprintById.mockResolvedValueOnce({
         error: 'The requested information could not be found.',
         status: 404
       });
       
-      // Simulate the component's template loading logic
-      let template = null;
+      // Simulate the component's blueprint loading logic
+      let blueprint = null;
       let isLoading = true;
       let error = '';
       
       try {
-        const result = await rangesApi.getTemplateById(templateId);
+        const result = await rangesApi.getBlueprintById(blueprintId);
         isLoading = false;
         
         if (result.error) {
           error = result.error;
         } else if (result.data) {
-          template = result.data;
+          blueprint = result.data;
         }
       } catch (err) {
         isLoading = false;
@@ -136,14 +136,14 @@ describe('Template Detail Page', () => {
       // Verify error handling
       expect(isLoading).toBe(false);
       expect(error).toBe('The requested information could not be found.');
-      expect(template).toBeNull();
+      expect(blueprint).toBeNull();
     });
   });
   
-  describe('Template deployment', () => {
-    it('deploys template successfully', async () => {
+  describe('Blueprint deployment', () => {
+    it('deploys blueprint successfully', async () => {
       // Mock successful deployment
-      rangesApi.deployTemplate.mockResolvedValueOnce({
+      rangesApi.deployBlueprint.mockResolvedValueOnce({
         data: {
           id: 'deployment-123',
           status: 'pending'
@@ -156,7 +156,7 @@ describe('Template Detail Page', () => {
       let isDeploying = true;
       
       try {
-        const result = await rangesApi.deployTemplate(templateId);
+        const result = await rangesApi.deployBlueprint(blueprintId);
         isDeploying = false;
         
         if (result.error) {
@@ -168,7 +168,7 @@ describe('Template Detail Page', () => {
         }
       } catch (err) {
         isDeploying = false;
-        deploymentError = 'Failed to deploy template';
+        deploymentError = 'Failed to deploy blueprint';
       }
       
       // Verify deployment was successful
@@ -181,8 +181,8 @@ describe('Template Detail Page', () => {
     
     it('handles API error during deployment', async () => {
       // Mock error during deployment
-      rangesApi.deployTemplate.mockResolvedValueOnce({
-        error: 'Failed to deploy template. API server error.',
+      rangesApi.deployBlueprint.mockResolvedValueOnce({
+        error: 'Failed to deploy blueprint. API server error.',
         status: 500
       });
       
@@ -192,7 +192,7 @@ describe('Template Detail Page', () => {
       let isDeploying = true;
       
       try {
-        const result = await rangesApi.deployTemplate(templateId);
+        const result = await rangesApi.deployBlueprint(blueprintId);
         isDeploying = false;
         
         if (result.error) {
@@ -203,12 +203,12 @@ describe('Template Detail Page', () => {
         }
       } catch (err) {
         isDeploying = false;
-        deploymentError = 'Failed to deploy template';
+        deploymentError = 'Failed to deploy blueprint';
       }
       
       // Verify error handling
       expect(isDeploying).toBe(false);
-      expect(deploymentError).toBe('Failed to deploy template. API server error.');
+      expect(deploymentError).toBe('Failed to deploy blueprint. API server error.');
       expect(deploymentResult).toBeNull();
       expect(goto).not.toHaveBeenCalled();
     });

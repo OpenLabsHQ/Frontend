@@ -51,8 +51,8 @@ const createTestAuthStore = () => {
   };
 };
 
-// Create a real implementation of the template wizard store for testing
-const createTestTemplateWizardStore = () => {
+// Create a real implementation of the blueprint wizard store for testing
+const createTestBlueprintWizardStore = () => {
   const initialState = {
     name: '',
     provider: 'aws',
@@ -199,7 +199,7 @@ const createTestTemplateWizardStore = () => {
 };
 
 export const authStoreMock = createTestAuthStore();
-export const templateWizardStoreMock = createTestTemplateWizardStore();
+export const blueprintWizardStoreMock = createTestBlueprintWizardStore();
 
 // Setup module mocks that can be imported in tests
 vi.mock('$app/navigation', () => navigationMock);
@@ -207,4 +207,4 @@ vi.mock('$app/environment', () => environmentMock);
 vi.mock('$app/forms', () => ({ enhance: vi.fn() }));
 vi.mock('$lib/config', () => ({ config: configMock }));
 vi.mock('$lib/stores/auth', () => ({ auth: authStoreMock }));
-vi.mock('$lib/stores/template-wizard', () => ({ templateWizard: templateWizardStoreMock }));
+vi.mock('$lib/stores/blueprint-wizard', () => ({ blueprintWizard: blueprintWizardStoreMock }));

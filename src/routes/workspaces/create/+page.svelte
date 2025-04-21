@@ -220,7 +220,7 @@
             <div>
               <h3 class="text-sm font-medium text-blue-800">About Workspaces</h3>
               <p class="mt-1 text-sm text-blue-600">
-                Workspaces allow you to collaborate with team members and share templates.
+                Workspaces allow you to collaborate with team members and share blueprints.
                 After creating a workspace, you can add users and start sharing resources.
               </p>
             </div>

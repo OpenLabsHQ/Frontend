@@ -1,15 +1,15 @@
 <script lang="ts">
   import { goto } from '$app/navigation'
   import {
-    templateWizard,
-    type TemplateSubnet,
-    type TemplateVPC,
-  } from '$lib/stores/template-wizard'
+    blueprintWizard,
+    type BlueprintSubnet,
+    type BlueprintVPC,
+  } from '$lib/stores/blueprint-wizard'
   import { onMount } from 'svelte'
 
   // Selected VPC
   let selectedVpcIndex = 0
-  let vpcs: TemplateVPC[] = []
+  let vpcs: BlueprintVPC[] = []
 
   // Subnet form data
   let name = ''
@@ -25,7 +25,7 @@
   // Helper function to generate a subnet CIDR from VPC CIDR
   function suggestSubnetCidr(
     vpcCidr: string,
-    existingSubnets: TemplateSubnet[] = []
+    existingSubnets: BlueprintSubnet[] = []
   ): string {
     try {
       // Parse the VPC CIDR (e.g., "192.168.0.0/16")
@@ -140,12 +140,12 @@
   // Initialize from store
   onMount(() => {
     // Check if we have VPCs before proceeding
-    if (!$templateWizard.vpcs.length) {
-      goto('/templates/create/vpc')
+    if (!$blueprintWizard.vpcs.length) {
+      goto('/blueprints/create/vpc')
       return
     }
 
-    vpcs = [...$templateWizard.vpcs]
+    vpcs = [...$blueprintWizard.vpcs]
 
     // Set initial CIDR based on first VPC
     if (vpcs.length > 0) {
@@ -212,17 +212,17 @@
   function addSubnet() {
     if (validateForm()) {
       // Create new subnet
-      const newSubnet: TemplateSubnet = {
+      const newSubnet: BlueprintSubnet = {
         name,
         cidr,
         hosts: [],
       }
 
       // Add to store
-      templateWizard.addSubnet(selectedVpcIndex, newSubnet)
+      blueprintWizard.addSubnet(selectedVpcIndex, newSubnet)
 
       // Update local state
-      vpcs = [...$templateWizard.vpcs]
+      vpcs = [...$blueprintWizard.vpcs]
 
       // Reset form
       name = ''
@@ -233,8 +233,8 @@
   }
 
   function removeSubnet(subnetIndex: number) {
-    templateWizard.removeSubnet(selectedVpcIndex, subnetIndex)
-    vpcs = [...$templateWizard.vpcs]
+    blueprintWizard.removeSubnet(selectedVpcIndex, subnetIndex)
+    vpcs = [...$blueprintWizard.vpcs]
   }
 
   let validationError = ''
@@ -249,12 +249,12 @@
     }
 
     validationError = ''
-    goto('/templates/create/host')
+    goto('/blueprints/create/host')
   }
 </script>
 
 <svelte:head>
-  <title>Subnet Configuration | Create Template</title>
+  <title>Subnet Configuration | Create Blueprint</title>
 </svelte:head>
 
 <div class="mx-auto max-w-4xl rounded-lg bg-white p-6 shadow-sm">
@@ -403,7 +403,7 @@
     <button
       type="button"
       class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
-      on:click={() => goto('/templates/create/vpc')}
+      on:click={() => goto('/blueprints/create/vpc')}
     >
       Back
     </button>
