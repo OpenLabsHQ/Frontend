@@ -115,7 +115,7 @@
 </script>
 
 <svelte:head>
-  <title>OpenLabs | Deployed Ranges</title>
+  <title>OpenLabs | Ranges</title>
 </svelte:head>
 
 <AuthGuard>

@@ -83,7 +83,7 @@
         deploymentError = result.error
         setAutoDismiss('error', 5000) // Error messages stay longer
       } else {
-        deploymentSuccess = `Successfully deployed "${blueprintName}"! You can view it in the Deployed Ranges section.`
+        deploymentSuccess = `Successfully deployed "${blueprintName}"! You can view it in the Ranges section.`
         setAutoDismiss('success', 3000)
       }
     } catch (error) {

@@ -244,7 +244,7 @@ describe('BlueprintList Component Logic', () => {
         if (result.error) {
           deploymentError = result.error;
         } else {
-          deploymentSuccess = `Successfully deployed "${blueprintName}"! You can view it in the Deployed Ranges section.`;
+          deploymentSuccess = `Successfully deployed "${blueprintName}"! You can view it in the Ranges section.`;
         }
       } catch (err) {
         deploymentError = 'An unexpected error occurred while deploying the blueprint';
@@ -255,7 +255,7 @@ describe('BlueprintList Component Logic', () => {
       // Verify the component would handle this correctly
       expect(deployingBlueprintId).toBe(null);
       expect(deploymentError).toBe('');
-      expect(deploymentSuccess).toBe('Successfully deployed "Test Blueprint"! You can view it in the Deployed Ranges section.');
+      expect(deploymentSuccess).toBe('Successfully deployed "Test Blueprint"! You can view it in the Ranges section.');
     });
     
     it('handles deployment error gracefully', async () => {

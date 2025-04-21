@@ -37,7 +37,7 @@
     href="/ranges"
     class="w-7/8 rounded-full bg-blue-500 px-4 py-3 text-center font-bold text-white hover:bg-blue-700"
   >
-    Deployed Ranges
+    Ranges
   </a>
   <a
     href="/blueprints"
