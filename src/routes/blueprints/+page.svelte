@@ -123,7 +123,7 @@
 
 <div class="font-roboto flex h-screen bg-gray-100">
   <!-- Fixed sidebar -->
-  <div class="fixed inset-y-0 left-0 z-10 w-52">
+  <div class="fixed inset-y-0 left-0 z-10 w-54">
     <Sidebar />
   </div>
 
