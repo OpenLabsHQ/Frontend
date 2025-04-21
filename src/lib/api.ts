@@ -374,7 +374,7 @@ export const rangesApi = {
 
   getTemplates: async () => {
     return await apiRequest<any[]>(
-      '/api/v1/templates/ranges',
+      '/api/v1/blueprints/ranges',
       'GET',
       undefined,
       true
@@ -383,7 +383,7 @@ export const rangesApi = {
 
   getTemplateById: async (id: string) => {
     return await apiRequest<any>(
-      `/api/v1/templates/ranges/${id}`,
+      `/api/v1/blueprints/ranges/${id}`,
       'GET',
       undefined,
       true
@@ -392,7 +392,7 @@ export const rangesApi = {
 
   createTemplate: async (templateData: any) => {
     return await apiRequest<any>(
-      '/api/v1/templates/ranges',
+      '/api/v1/blueprints/ranges',
       'POST',
       templateData,
       true
@@ -424,7 +424,7 @@ export const rangesApi = {
   // Delete a template by ID
   deleteTemplate: async (templateId: string) => {
     return await apiRequest<any>(
-      `/api/v1/templates/ranges/${templateId}`,
+      `/api/v1/blueprints/ranges/${templateId}`,
       'DELETE',
       undefined,
       true
@@ -537,7 +537,7 @@ export const workspacesApi = {
   // Get templates shared in a workspace
   getWorkspaceTemplates: async (workspaceId: string) => {
     return await apiRequest<any[]>(
-      `/api/v1/workspaces/${workspaceId}/templates`,
+      `/api/v1/workspaces/${workspaceId}/blueprints`,
       'GET',
       undefined,
       true
@@ -547,7 +547,7 @@ export const workspacesApi = {
   // Share a template with a workspace
   shareTemplateWithWorkspace: async (workspaceId: string, templateId: string) => {
     return await apiRequest<{success: boolean}>(
-      `/api/v1/workspaces/${workspaceId}/templates`,
+      `/api/v1/workspaces/${workspaceId}/blueprints`,
       'POST',
       { template_id: templateId },
       true
@@ -558,7 +558,7 @@ export const workspacesApi = {
   // Note: templateId should be the actual template ID (not the sharing record ID)
   removeTemplateFromWorkspace: async (workspaceId: string, templateId: string) => {
     return await apiRequest<{success: boolean}>(
-      `/api/v1/workspaces/${workspaceId}/templates/${templateId}`,
+      `/api/v1/workspaces/${workspaceId}/blueprints/${templateId}`,
       'DELETE',
       undefined,
       true
