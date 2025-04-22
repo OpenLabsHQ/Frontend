@@ -7,18 +7,18 @@
 
   // Define the wizard steps
   const steps = [
-    { id: 'range', title: 'Range Details', path: '/templates/create' },
-    { id: 'vpc', title: 'VPC Configuration', path: '/templates/create/vpc' },
+    { id: 'range', title: 'Range Details', path: '/blueprints/create' },
+    { id: 'vpc', title: 'VPC Configuration', path: '/blueprints/create/vpc' },
     {
       id: 'subnet',
       title: 'Subnet Configuration',
-      path: '/templates/create/subnet',
+      path: '/blueprints/create/subnet',
     },
-    { id: 'host', title: 'Host Configuration', path: '/templates/create/host' },
+    { id: 'host', title: 'Host Configuration', path: '/blueprints/create/host' },
     {
       id: 'review',
       title: 'Review & Create',
-      path: '/templates/create/review',
+      path: '/blueprints/create/review',
     },
   ]
 
@@ -101,20 +101,20 @@
 </script>
 
 <svelte:head>
-  <title>OpenLabs | Create Template</title>
+  <title>OpenLabs | Create Blueprint</title>
 </svelte:head>
 
 <div class="flex h-screen bg-gray-100">
   <!-- Fixed sidebar -->
-  <div class="fixed inset-y-0 left-0 z-10 w-52">
+  <div class="fixed inset-y-0 left-0 z-10 w-54">
     <Sidebar />
   </div>
 
   <!-- Main content with sidebar margin -->
-  <div class="ml-52 flex flex-1 flex-col">
+  <div class="ml-54 flex flex-1 flex-col">
     <!-- Header with step indicator -->
     <div class="sticky top-0 z-5 border-b bg-white p-6 shadow-sm">
-      <h1 class="mb-6 text-2xl font-bold">Create Range Template</h1>
+      <h1 class="mb-6 text-2xl font-bold">Create Range Blueprint</h1>
 
       <div class="relative">
         <!-- Step items container with aligned circles and titles -->

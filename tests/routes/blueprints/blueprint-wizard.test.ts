@@ -3,8 +3,8 @@ import { goto } from '$app/navigation';
 import { get } from 'svelte/store';
 import { rangesApi } from '../../../src/lib/api';
 
-// Mock the template-wizard store
-const templateWizard = {
+// Mock the blueprint-wizard store
+const blueprintWizard = {
   currentStep: 1,
   vpc: null,
   subnets: [],
@@ -16,11 +16,11 @@ const templateWizard = {
   },
   
   reset: vi.fn(() => {
-    templateWizard.currentStep = 1;
-    templateWizard.vpc = null;
-    templateWizard.subnets = [];
-    templateWizard.hosts = [];
-    templateWizard.completed = {
+    blueprintWizard.currentStep = 1;
+    blueprintWizard.vpc = null;
+    blueprintWizard.subnets = [];
+    blueprintWizard.hosts = [];
+    blueprintWizard.completed = {
       vpc: false,
       subnets: false,
       hosts: false
@@ -28,34 +28,34 @@ const templateWizard = {
   }),
   
   setVpc: vi.fn((vpc) => {
-    templateWizard.vpc = vpc;
-    templateWizard.completed.vpc = true;
+    blueprintWizard.vpc = vpc;
+    blueprintWizard.completed.vpc = true;
   }),
   
   addSubnet: vi.fn((subnet) => {
     const newSubnet = { ...subnet, id: subnet.id || `subnet-${Date.now()}` };
-    templateWizard.subnets.push(newSubnet);
-    templateWizard.completed.subnets = templateWizard.subnets.length > 0;
+    blueprintWizard.subnets.push(newSubnet);
+    blueprintWizard.completed.subnets = blueprintWizard.subnets.length > 0;
   }),
   
   removeSubnet: vi.fn((id) => {
-    templateWizard.subnets = templateWizard.subnets.filter(s => s.id !== id);
-    templateWizard.completed.subnets = templateWizard.subnets.length > 0;
+    blueprintWizard.subnets = blueprintWizard.subnets.filter(s => s.id !== id);
+    blueprintWizard.completed.subnets = blueprintWizard.subnets.length > 0;
   }),
   
   addHost: vi.fn((host) => {
     const newHost = { ...host, id: host.id || `host-${Date.now()}` };
-    templateWizard.hosts.push(newHost);
-    templateWizard.completed.hosts = templateWizard.hosts.length > 0;
+    blueprintWizard.hosts.push(newHost);
+    blueprintWizard.completed.hosts = blueprintWizard.hosts.length > 0;
   }),
   
   removeHost: vi.fn((id) => {
-    templateWizard.hosts = templateWizard.hosts.filter(h => h.id !== id);
-    templateWizard.completed.hosts = templateWizard.hosts.length > 0;
+    blueprintWizard.hosts = blueprintWizard.hosts.filter(h => h.id !== id);
+    blueprintWizard.completed.hosts = blueprintWizard.hosts.length > 0;
   }),
   
   subscribe: vi.fn((callback) => {
-    callback(templateWizard);
+    callback(blueprintWizard);
     return () => {};
   })
 };
@@ -67,17 +67,17 @@ vi.mock('$app/navigation', () => ({
 
 vi.mock('../../../src/lib/api', () => ({
   rangesApi: {
-    createTemplate: vi.fn()
+    createBlueprint: vi.fn()
   }
 }));
 
-describe('Template Wizard Flow', () => {
+describe('Blueprint Wizard Flow', () => {
   // Reset all mocks and store state before each test
   beforeEach(() => {
     vi.resetAllMocks();
     
     // Reset the store to default state
-    templateWizard.reset();
+    blueprintWizard.reset();
     
     // Set up get function for store
     vi.mock('svelte/store', () => ({
@@ -98,10 +98,10 @@ describe('Template Wizard Flow', () => {
       };
       
       // Apply VPC configuration
-      templateWizard.setVpc(vpcData);
+      blueprintWizard.setVpc(vpcData);
       
       // Get the store state
-      const state = get(templateWizard);
+      const state = get(blueprintWizard);
       
       // Verify VPC data was saved
       expect(state.vpc).toEqual(vpcData);
@@ -143,7 +143,7 @@ describe('Template Wizard Flow', () => {
   describe('Subnet configuration step', () => {
     it('adds subnets correctly', () => {
       // Setup VPC first
-      templateWizard.setVpc({
+      blueprintWizard.setVpc({
         name: 'Test VPC',
         cidr: '10.0.0.0/16',
         provider: 'aws',
@@ -151,7 +151,7 @@ describe('Template Wizard Flow', () => {
       });
       
       // Add a public subnet
-      templateWizard.addSubnet({
+      blueprintWizard.addSubnet({
         name: 'Public Subnet',
         cidr: '10.0.1.0/24',
         type: 'public',
@@ -159,7 +159,7 @@ describe('Template Wizard Flow', () => {
       });
       
       // Add a private subnet
-      templateWizard.addSubnet({
+      blueprintWizard.addSubnet({
         name: 'Private Subnet',
         cidr: '10.0.2.0/24',
         type: 'private',
@@ -167,7 +167,7 @@ describe('Template Wizard Flow', () => {
       });
       
       // Get the store state
-      const state = get(templateWizard);
+      const state = get(blueprintWizard);
       
       // Verify subnets were added
       expect(state.subnets).toHaveLength(2);
@@ -178,7 +178,7 @@ describe('Template Wizard Flow', () => {
     
     it('removes subnets correctly', () => {
       // Setup VPC and subnets
-      templateWizard.setVpc({
+      blueprintWizard.setVpc({
         name: 'Test VPC',
         cidr: '10.0.0.0/16',
         provider: 'aws',
@@ -186,7 +186,7 @@ describe('Template Wizard Flow', () => {
       });
       
       // Add two subnets
-      templateWizard.addSubnet({
+      blueprintWizard.addSubnet({
         id: 'subnet1',
         name: 'Subnet 1',
         cidr: '10.0.1.0/24',
@@ -194,7 +194,7 @@ describe('Template Wizard Flow', () => {
         az: 'us-east-1a'
       });
       
-      templateWizard.addSubnet({
+      blueprintWizard.addSubnet({
         id: 'subnet2',
         name: 'Subnet 2',
         cidr: '10.0.2.0/24',
@@ -203,10 +203,10 @@ describe('Template Wizard Flow', () => {
       });
       
       // Remove the first subnet
-      templateWizard.removeSubnet('subnet1');
+      blueprintWizard.removeSubnet('subnet1');
       
       // Get the store state
-      const state = get(templateWizard);
+      const state = get(blueprintWizard);
       
       // Verify subnet was removed
       expect(state.subnets).toHaveLength(1);
@@ -222,7 +222,7 @@ describe('Template Wizard Flow', () => {
         region: 'us-east-1'
       };
       
-      templateWizard.setVpc(vpc);
+      blueprintWizard.setVpc(vpc);
       
       // Function to check if subnet CIDR is within VPC CIDR
       function isSubnetInVpc(subnetCidr, vpcCidr) {
@@ -259,14 +259,14 @@ describe('Template Wizard Flow', () => {
   describe('Host configuration step', () => {
     it('adds hosts correctly', () => {
       // Setup VPC and subnet
-      templateWizard.setVpc({
+      blueprintWizard.setVpc({
         name: 'Test VPC',
         cidr: '10.0.0.0/16',
         provider: 'aws',
         region: 'us-east-1'
       });
       
-      templateWizard.addSubnet({
+      blueprintWizard.addSubnet({
         id: 'public1',
         name: 'Public Subnet',
         cidr: '10.0.1.0/24',
@@ -275,7 +275,7 @@ describe('Template Wizard Flow', () => {
       });
       
       // Add a host
-      templateWizard.addHost({
+      blueprintWizard.addHost({
         name: 'Web Server',
         subnet: 'public1',
         os: 'linux',
@@ -283,7 +283,7 @@ describe('Template Wizard Flow', () => {
       });
       
       // Get the store state
-      const state = get(templateWizard);
+      const state = get(blueprintWizard);
       
       // Verify host was added
       expect(state.hosts).toHaveLength(1);
@@ -294,14 +294,14 @@ describe('Template Wizard Flow', () => {
     
     it('removes hosts correctly', () => {
       // Setup VPC and subnet
-      templateWizard.setVpc({
+      blueprintWizard.setVpc({
         name: 'Test VPC',
         cidr: '10.0.0.0/16',
         provider: 'aws',
         region: 'us-east-1'
       });
       
-      templateWizard.addSubnet({
+      blueprintWizard.addSubnet({
         id: 'public1',
         name: 'Public Subnet',
         cidr: '10.0.1.0/24',
@@ -310,7 +310,7 @@ describe('Template Wizard Flow', () => {
       });
       
       // Add two hosts
-      templateWizard.addHost({
+      blueprintWizard.addHost({
         id: 'host1',
         name: 'Web Server',
         subnet: 'public1',
@@ -318,7 +318,7 @@ describe('Template Wizard Flow', () => {
         instanceType: 't2.micro'
       });
       
-      templateWizard.addHost({
+      blueprintWizard.addHost({
         id: 'host2',
         name: 'Database Server',
         subnet: 'public1',
@@ -327,10 +327,10 @@ describe('Template Wizard Flow', () => {
       });
       
       // Remove the first host
-      templateWizard.removeHost('host1');
+      blueprintWizard.removeHost('host1');
       
       // Get the store state
-      const state = get(templateWizard);
+      const state = get(blueprintWizard);
       
       // Verify host was removed
       expect(state.hosts).toHaveLength(1);
@@ -340,15 +340,15 @@ describe('Template Wizard Flow', () => {
   
   describe('Review and submission step', () => {
     it('prepares data for submission correctly', () => {
-      // Setup complete template
-      templateWizard.setVpc({
+      // Setup complete blueprint
+      blueprintWizard.setVpc({
         name: 'Production VPC',
         cidr: '10.0.0.0/16',
         provider: 'aws',
         region: 'us-east-1'
       });
       
-      templateWizard.addSubnet({
+      blueprintWizard.addSubnet({
         id: 'public1',
         name: 'Public Subnet',
         cidr: '10.0.1.0/24',
@@ -356,7 +356,7 @@ describe('Template Wizard Flow', () => {
         az: 'us-east-1a'
       });
       
-      templateWizard.addSubnet({
+      blueprintWizard.addSubnet({
         id: 'private1',
         name: 'Private Subnet',
         cidr: '10.0.2.0/24',
@@ -364,7 +364,7 @@ describe('Template Wizard Flow', () => {
         az: 'us-east-1b'
       });
       
-      templateWizard.addHost({
+      blueprintWizard.addHost({
         id: 'web1',
         name: 'Web Server',
         subnet: 'public1',
@@ -372,7 +372,7 @@ describe('Template Wizard Flow', () => {
         instanceType: 't2.micro'
       });
       
-      templateWizard.addHost({
+      blueprintWizard.addHost({
         id: 'db1',
         name: 'Database Server',
         subnet: 'private1',
@@ -381,7 +381,7 @@ describe('Template Wizard Flow', () => {
       });
       
       // Function to prepare data for API - similar to what would be in the component
-      function prepareTemplateData(state) {
+      function prepareBlueprintData(state) {
         return {
           name: state.vpc.name,
           provider: state.vpc.provider,
@@ -405,8 +405,8 @@ describe('Template Wizard Flow', () => {
       }
       
       // Generate the API payload
-      const state = get(templateWizard);
-      const apiPayload = prepareTemplateData(state);
+      const state = get(blueprintWizard);
+      const apiPayload = prepareBlueprintData(state);
       
       // Verify payload structure
       expect(apiPayload.name).toBe('Production VPC');
@@ -417,16 +417,16 @@ describe('Template Wizard Flow', () => {
       expect(apiPayload.hosts[1].subnet).toBe('private1');
     });
     
-    it('submits template to API and handles success', async () => {
-      // Setup template
-      templateWizard.setVpc({
-        name: 'Test Template',
+    it('submits blueprint to API and handles success', async () => {
+      // Setup blueprint
+      blueprintWizard.setVpc({
+        name: 'Test Blueprint',
         cidr: '10.0.0.0/16',
         provider: 'aws',
         region: 'us-east-1'
       });
       
-      templateWizard.addSubnet({
+      blueprintWizard.addSubnet({
         id: 'subnet1',
         name: 'Subnet',
         cidr: '10.0.1.0/24',
@@ -435,19 +435,19 @@ describe('Template Wizard Flow', () => {
       });
       
       // Mock successful API response
-      rangesApi.createTemplate.mockResolvedValueOnce({
-        data: { id: 'new-template-123', name: 'Test Template' }
+      rangesApi.createBlueprint.mockResolvedValueOnce({
+        data: { id: 'new-blueprint-123', name: 'Test Blueprint' }
       });
       
       // Simulate form submission
-      const state = get(templateWizard);
+      const state = get(blueprintWizard);
       let isSubmitting = true;
       let error = '';
       let success = false;
       
       try {
         // Prepare data (simplified)
-        const templateData = {
+        const blueprintData = {
           name: state.vpc.name,
           provider: state.vpc.provider,
           vpc: { cidr_block: state.vpc.cidr },
@@ -455,17 +455,17 @@ describe('Template Wizard Flow', () => {
         };
         
         // Submit to API
-        const result = await rangesApi.createTemplate(templateData);
+        const result = await rangesApi.createBlueprint(blueprintData);
         
         if (result.error) {
           error = result.error;
         } else {
           success = true;
           // Would typically redirect here
-          goto('/templates');
+          goto('/blueprints');
         }
       } catch (err) {
-        error = 'Failed to submit template';
+        error = 'Failed to submit blueprint';
       } finally {
         isSubmitting = false;
       }
@@ -474,56 +474,56 @@ describe('Template Wizard Flow', () => {
       expect(isSubmitting).toBe(false);
       expect(error).toBe('');
       expect(success).toBe(true);
-      expect(rangesApi.createTemplate).toHaveBeenCalledTimes(1);
-      expect(goto).toHaveBeenCalledWith('/templates');
+      expect(rangesApi.createBlueprint).toHaveBeenCalledTimes(1);
+      expect(goto).toHaveBeenCalledWith('/blueprints');
     });
     
     it('handles API error during submission', async () => {
-      // Setup template
-      templateWizard.setVpc({
-        name: 'Test Template',
+      // Setup blueprint
+      blueprintWizard.setVpc({
+        name: 'Test Blueprint',
         cidr: '10.0.0.0/16',
         provider: 'aws',
         region: 'us-east-1'
       });
       
       // Mock API error
-      rangesApi.createTemplate.mockResolvedValueOnce({
-        error: 'Failed to create template'
+      rangesApi.createBlueprint.mockResolvedValueOnce({
+        error: 'Failed to create blueprint'
       });
       
       // Simulate form submission
-      const state = get(templateWizard);
+      const state = get(blueprintWizard);
       let isSubmitting = true;
       let error = '';
       let success = false;
       
       try {
         // Prepare data (simplified)
-        const templateData = {
+        const blueprintData = {
           name: state.vpc.name,
           provider: state.vpc.provider,
           vpc: { cidr_block: state.vpc.cidr }
         };
         
         // Submit to API
-        const result = await rangesApi.createTemplate(templateData);
+        const result = await rangesApi.createBlueprint(blueprintData);
         
         if (result.error) {
           error = result.error;
         } else {
           success = true;
-          goto('/templates');
+          goto('/blueprints');
         }
       } catch (err) {
-        error = 'Failed to submit template';
+        error = 'Failed to submit blueprint';
       } finally {
         isSubmitting = false;
       }
       
       // Verify error handling
       expect(isSubmitting).toBe(false);
-      expect(error).toBe('Failed to create template');
+      expect(error).toBe('Failed to create blueprint');
       expect(success).toBe(false);
       expect(goto).not.toHaveBeenCalled();
     });

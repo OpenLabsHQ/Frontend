@@ -3,8 +3,8 @@ import type { OpenLabsProvider } from '$lib/types/providers'
 import type { OpenLabsOS } from '$lib/types/os'
 import type { OpenLabsSpec } from '$lib/types/specs'
 
-// Define the template structure interfaces
-export interface TemplateHost {
+// Define the blueprint structure interfaces
+export interface BlueprintHost {
   hostname: string
   os: OpenLabsOS
   spec: OpenLabsSpec
@@ -13,28 +13,28 @@ export interface TemplateHost {
   count?: number // Number of identical machines to create
 }
 
-export interface TemplateSubnet {
+export interface BlueprintSubnet {
   name: string
   cidr: string
-  hosts: TemplateHost[]
+  hosts: BlueprintHost[]
 }
 
-export interface TemplateVPC {
+export interface BlueprintVPC {
   name: string
   cidr: string
-  subnets: TemplateSubnet[]
+  subnets: BlueprintSubnet[]
 }
 
-export interface TemplateRange {
+export interface BlueprintRange {
   name: string
   provider: OpenLabsProvider
   vnc: boolean
   vpn: boolean
-  vpcs: TemplateVPC[]
+  vpcs: BlueprintVPC[]
 }
 
-// Initial empty template
-const initialTemplate: TemplateRange = {
+// Initial empty blueprint
+const initialBlueprint: BlueprintRange = {
   name: '',
   provider: 'aws', // Default provider
   vnc: false,
@@ -43,13 +43,13 @@ const initialTemplate: TemplateRange = {
 }
 
 // Create the writable store
-function createTemplateWizardStore() {
-  const { subscribe, set, update } = writable<TemplateRange>(initialTemplate)
+function createBlueprintWizardStore() {
+  const { subscribe, set, update } = writable<BlueprintRange>(initialBlueprint)
 
   return {
     subscribe,
     // Reset to initial state
-    reset: () => set({ ...initialTemplate }),
+    reset: () => set({ ...initialBlueprint }),
 
     // Update range details (step 1)
     setRangeDetails: (
@@ -57,56 +57,56 @@ function createTemplateWizardStore() {
       provider: OpenLabsProvider,
       vnc: boolean,
       vpn: boolean
-    ) => update((template) => ({ ...template, name, provider, vnc, vpn })),
+    ) => update((blueprint) => ({ ...blueprint, name, provider, vnc, vpn })),
 
     // Add a VPC (step 2)
-    addVPC: (vpc: TemplateVPC) =>
-      update((template) => ({
-        ...template,
-        vpcs: [...template.vpcs, vpc],
+    addVPC: (vpc: BlueprintVPC) =>
+      update((blueprint) => ({
+        ...blueprint,
+        vpcs: [...blueprint.vpcs, vpc],
       })),
 
     // Update an existing VPC
-    updateVPC: (index: number, vpc: TemplateVPC) =>
-      update((template) => {
-        const vpcs = [...template.vpcs]
+    updateVPC: (index: number, vpc: BlueprintVPC) =>
+      update((blueprint) => {
+        const vpcs = [...blueprint.vpcs]
         vpcs[index] = vpc
-        return { ...template, vpcs }
+        return { ...blueprint, vpcs }
       }),
 
     // Add a subnet to a VPC
-    addSubnet: (vpcIndex: number, subnet: TemplateSubnet) =>
-      update((template) => {
-        const vpcs = [...template.vpcs]
+    addSubnet: (vpcIndex: number, subnet: BlueprintSubnet) =>
+      update((blueprint) => {
+        const vpcs = [...blueprint.vpcs]
         if (vpcs[vpcIndex]) {
           vpcs[vpcIndex] = {
             ...vpcs[vpcIndex],
             subnets: [...vpcs[vpcIndex].subnets, subnet],
           }
         }
-        return { ...template, vpcs }
+        return { ...blueprint, vpcs }
       }),
 
     // Update an existing subnet
     updateSubnet: (
       vpcIndex: number,
       subnetIndex: number,
-      subnet: TemplateSubnet
+      subnet: BlueprintSubnet
     ) =>
-      update((template) => {
-        const vpcs = [...template.vpcs]
+      update((blueprint) => {
+        const vpcs = [...blueprint.vpcs]
         if (vpcs[vpcIndex] && vpcs[vpcIndex].subnets[subnetIndex]) {
           const subnets = [...vpcs[vpcIndex].subnets]
           subnets[subnetIndex] = subnet
           vpcs[vpcIndex] = { ...vpcs[vpcIndex], subnets }
         }
-        return { ...template, vpcs }
+        return { ...blueprint, vpcs }
       }),
 
     // Add a host to a subnet
-    addHost: (vpcIndex: number, subnetIndex: number, host: TemplateHost) =>
-      update((template) => {
-        const vpcs = [...template.vpcs]
+    addHost: (vpcIndex: number, subnetIndex: number, host: BlueprintHost) =>
+      update((blueprint) => {
+        const vpcs = [...blueprint.vpcs]
         if (vpcs[vpcIndex] && vpcs[vpcIndex].subnets[subnetIndex]) {
           const subnets = [...vpcs[vpcIndex].subnets]
           subnets[subnetIndex] = {
@@ -115,7 +115,7 @@ function createTemplateWizardStore() {
           }
           vpcs[vpcIndex] = { ...vpcs[vpcIndex], subnets }
         }
-        return { ...template, vpcs }
+        return { ...blueprint, vpcs }
       }),
 
     // Update an existing host
@@ -123,10 +123,10 @@ function createTemplateWizardStore() {
       vpcIndex: number,
       subnetIndex: number,
       hostIndex: number,
-      host: TemplateHost
+      host: BlueprintHost
     ) =>
-      update((template) => {
-        const vpcs = [...template.vpcs]
+      update((blueprint) => {
+        const vpcs = [...blueprint.vpcs]
         if (vpcs[vpcIndex] && vpcs[vpcIndex].subnets[subnetIndex]) {
           const subnets = [...vpcs[vpcIndex].subnets]
           const hosts = [...subnets[subnetIndex].hosts]
@@ -134,33 +134,33 @@ function createTemplateWizardStore() {
           subnets[subnetIndex] = { ...subnets[subnetIndex], hosts }
           vpcs[vpcIndex] = { ...vpcs[vpcIndex], subnets }
         }
-        return { ...template, vpcs }
+        return { ...blueprint, vpcs }
       }),
 
     // Remove a VPC
     removeVPC: (index: number) =>
-      update((template) => ({
-        ...template,
-        vpcs: template.vpcs.filter((_, i) => i !== index),
+      update((blueprint) => ({
+        ...blueprint,
+        vpcs: blueprint.vpcs.filter((_, i) => i !== index),
       })),
 
     // Remove a subnet
     removeSubnet: (vpcIndex: number, subnetIndex: number) =>
-      update((template) => {
-        const vpcs = [...template.vpcs]
+      update((blueprint) => {
+        const vpcs = [...blueprint.vpcs]
         if (vpcs[vpcIndex]) {
           vpcs[vpcIndex] = {
             ...vpcs[vpcIndex],
             subnets: vpcs[vpcIndex].subnets.filter((_, i) => i !== subnetIndex),
           }
         }
-        return { ...template, vpcs }
+        return { ...blueprint, vpcs }
       }),
 
     // Remove a host
     removeHost: (vpcIndex: number, subnetIndex: number, hostIndex: number) =>
-      update((template) => {
-        const vpcs = [...template.vpcs]
+      update((blueprint) => {
+        const vpcs = [...blueprint.vpcs]
         if (vpcs[vpcIndex] && vpcs[vpcIndex].subnets[subnetIndex]) {
           const subnets = [...vpcs[vpcIndex].subnets]
           subnets[subnetIndex] = {
@@ -169,7 +169,7 @@ function createTemplateWizardStore() {
           }
           vpcs[vpcIndex] = { ...vpcs[vpcIndex], subnets }
         }
-        return { ...template, vpcs }
+        return { ...blueprint, vpcs }
       }),
 
     // Duplicate hosts from one subnet to another
@@ -179,8 +179,8 @@ function createTemplateWizardStore() {
       targetVpcIndex: number,
       targetSubnetIndex: number
     ) =>
-      update((template) => {
-        const vpcs = [...template.vpcs]
+      update((blueprint) => {
+        const vpcs = [...blueprint.vpcs]
 
         // Ensure source and target exist
         if (
@@ -189,7 +189,7 @@ function createTemplateWizardStore() {
           !vpcs[targetVpcIndex] ||
           !vpcs[targetVpcIndex].subnets[targetSubnetIndex]
         ) {
-          return template
+          return blueprint
         }
 
         // Get hosts to duplicate
@@ -230,10 +230,10 @@ function createTemplateWizardStore() {
         }
         vpcs[targetVpcIndex] = { ...vpcs[targetVpcIndex], subnets }
 
-        return { ...template, vpcs }
+        return { ...blueprint, vpcs }
       }),
   }
 }
 
 // Export the store instance
-export const templateWizard = createTemplateWizardStore()
+export const blueprintWizard = createBlueprintWizardStore()

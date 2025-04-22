@@ -1,33 +1,33 @@
 <script lang="ts">
   import { goto } from '$app/navigation'
   import {
-    templateWizard,
-    type TemplateRange,
-  } from '$lib/stores/template-wizard'
+    blueprintWizard,
+    type BlueprintRange,
+  } from '$lib/stores/blueprint-wizard'
   import { rangesApi } from '$lib/api'
   import { onMount } from 'svelte'
   import NetworkGraph from '$lib/components/NetworkGraph.svelte'
 
-  let template: TemplateRange
+  let blueprint: BlueprintRange
   let isSubmitting = false
   let error = ''
   let success = false
 
   // Initialize from store
   onMount(() => {
-    if (!$templateWizard) {
-      goto('/templates/create')
+    if (!$blueprintWizard) {
+      goto('/blueprints/create')
       return
     }
 
     // Ensure vpcs is an array
-    if (!Array.isArray($templateWizard.vpcs)) {
-      goto('/templates/create')
+    if (!Array.isArray($blueprintWizard.vpcs)) {
+      goto('/blueprints/create')
       return
     }
 
     // Validation check for hosts
-    const hasHosts = $templateWizard.vpcs.some(
+    const hasHosts = $blueprintWizard.vpcs.some(
       (vpc) =>
         Array.isArray(vpc.subnets) &&
         vpc.subnets.some(
@@ -35,20 +35,20 @@
         )
     )
 
-    if (!$templateWizard.name || !hasHosts) {
-      goto('/templates/create')
+    if (!$blueprintWizard.name || !hasHosts) {
+      goto('/blueprints/create')
       return
     }
 
-    template = { ...$templateWizard }
+    blueprint = { ...$blueprintWizard }
   })
 
-  // Convert template to a pretty-printed JSON string
-  $: templateJson = template ? JSON.stringify(template, null, 2) : ''
+  // Convert blueprint to a pretty-printed JSON string
+  $: blueprintJson = blueprint ? JSON.stringify(blueprint, null, 2) : ''
 
   // Get total host count
-  $: hostCount = template
-    ? template.vpcs.reduce(
+  $: hostCount = blueprint
+    ? blueprint.vpcs.reduce(
         (total, vpc) =>
           total +
           vpc.subnets.reduce(
@@ -93,7 +93,7 @@
     }
   }
 
-  async function submitTemplate() {
+  async function submitBlueprint() {
     if (isSubmitting) return
 
     try {
@@ -101,23 +101,23 @@
       error = ''
 
       // Send to API
-      const result = await rangesApi.createTemplate(template)
+      const result = await rangesApi.createBlueprint(blueprint)
 
       if (result.error) {
         error = result.error
       } else {
         // Success - reset wizard and show success message
         success = true
-        templateWizard.reset()
+        blueprintWizard.reset()
 
         // Redirect after 2 seconds
         setTimeout(() => {
-          goto('/templates')
+          goto('/blueprints')
         }, 2000)
       }
     } catch (err) {
       error = 'An unexpected error occurred'
-      console.error('Template submission error:', err)
+      console.error('Blueprint submission error:', err)
     } finally {
       isSubmitting = false
     }
@@ -125,7 +125,7 @@
 </script>
 
 <svelte:head>
-  <title>Review & Create | Create Template</title>
+  <title>Review & Create | Create Blueprint</title>
 </svelte:head>
 
 <div class="mx-auto max-w-5xl">
@@ -148,7 +148,7 @@
         </div>
         <div class="ml-3">
           <p class="text-sm leading-5 text-green-700">
-            Template created successfully! Redirecting to templates page...
+            Blueprint created successfully! Redirecting to blueprints page...
           </p>
         </div>
       </div>
@@ -182,29 +182,29 @@
   {/if}
 
   <div class="rounded-lg bg-white p-6 shadow-sm">
-    <h2 class="mb-6 text-xl font-semibold">Review & Create Template</h2>
+    <h2 class="mb-6 text-xl font-semibold">Review & Create Blueprint</h2>
 
-    {#if template}
-      <!-- Template Summary -->
+    {#if blueprint}
+      <!-- Blueprint Summary -->
       <div class="mb-8">
-        <h3 class="mb-3 text-lg font-medium">Template Summary</h3>
+        <h3 class="mb-3 text-lg font-medium">Blueprint Summary</h3>
         <div class="rounded-md bg-gray-50 p-4">
           <div class="grid grid-cols-2 gap-4">
             <div>
               <p class="text-sm font-medium text-gray-500">Name</p>
-              <p class="text-base">{template.name}</p>
+              <p class="text-base">{blueprint.name}</p>
             </div>
             <div>
               <p class="text-sm font-medium text-gray-500">Provider</p>
-              <p class="text-base uppercase">{template.provider}</p>
+              <p class="text-base uppercase">{blueprint.provider}</p>
             </div>
             <div>
               <p class="text-sm font-medium text-gray-500">Features</p>
               <p class="text-base">
-                {#if template.vnc || template.vpn}
-                  {template.vnc ? 'VNC' : ''}{template.vnc && template.vpn
+                {#if blueprint.vnc || blueprint.vpn}
+                  {blueprint.vnc ? 'VNC' : ''}{blueprint.vnc && blueprint.vpn
                     ? ', '
-                    : ''}{template.vpn ? 'VPN' : ''}
+                    : ''}{blueprint.vpn ? 'VPN' : ''}
                 {:else}
                   None
                 {/if}
@@ -259,7 +259,7 @@
         >
           <h3 class="mb-3 text-lg font-medium">Network Visualization</h3>
           <div class="rounded-md border border-gray-200">
-            <NetworkGraph templateData={template} />
+            <NetworkGraph blueprintData={blueprint} />
           </div>
         </div>
       {/if}
@@ -268,7 +268,7 @@
       <div class="mb-8">
         <h3 class="mb-3 text-lg font-medium">Network Structure</h3>
 
-        {#each template.vpcs as vpc, vpcIndex}
+        {#each blueprint.vpcs as vpc, vpcIndex}
           <div class="mb-4 rounded-md bg-gray-50 p-4">
             <!-- VPC Header -->
             <button
@@ -417,11 +417,11 @@
       <!-- Raw JSON -->
       <div class="mb-8">
         <div class="mb-3 flex items-center justify-between">
-          <h3 class="text-lg font-medium">Template JSON</h3>
+          <h3 class="text-lg font-medium">Blueprint JSON</h3>
         </div>
         <pre
           class="max-h-96 overflow-auto rounded-md bg-gray-900 p-4 text-sm text-white"
-          style="white-space: pre-wrap; word-break: break-word;">{templateJson}</pre>
+          style="white-space: pre-wrap; word-break: break-word;">{blueprintJson}</pre>
       </div>
     {/if}
 
@@ -430,7 +430,7 @@
       <button
         type="button"
         class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
-        on:click={() => goto('/templates/create/host')}
+        on:click={() => goto('/blueprints/create/host')}
         disabled={isSubmitting}
       >
         Back
@@ -438,7 +438,7 @@
       <button
         type="button"
         class="flex items-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-green-700"
-        on:click={submitTemplate}
+        on:click={submitBlueprint}
         disabled={isSubmitting || success}
       >
         {#if isSubmitting}
@@ -462,9 +462,9 @@
               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
             ></path>
           </svg>
-          Creating Template...
+          Creating Blueprint...
         {:else}
-          Create Template
+          Create Blueprint
         {/if}
       </button>
     </div>

@@ -22,7 +22,8 @@
 
       if (result.data) {
         // Successfully verified authentication
-        auth.setAuth()
+        // Include the user data when setting auth state
+        auth.setAuth(result.data.user)
 
         // Only call success if we weren't already authenticated
         if (!localAuth) {

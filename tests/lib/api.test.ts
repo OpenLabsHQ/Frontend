@@ -57,10 +57,10 @@ describe('API', () => {
     // Check rangesApi exports expected methods
     expect(rangesApi.getRanges).toBeDefined();
     expect(rangesApi.getRangeById).toBeDefined();
-    expect(rangesApi.getTemplates).toBeDefined();
-    expect(rangesApi.getTemplateById).toBeDefined();
-    expect(rangesApi.createTemplate).toBeDefined();
-    expect(rangesApi.deployTemplate).toBeDefined();
+    expect(rangesApi.getBlueprints).toBeDefined();
+    expect(rangesApi.getBlueprintById).toBeDefined();
+    expect(rangesApi.createBlueprint).toBeDefined();
+    expect(rangesApi.deployBlueprint).toBeDefined();
   });
 
   describe('userApi', () => {
@@ -232,13 +232,13 @@ describe('API', () => {
       expect(result.status).toBe(500);
     });
 
-    it('getTemplateById fetches specific template', async () => {
-      const templateId = '123';
+    it('getBlueprintById fetches specific blueprint', async () => {
+      const blueprintId = '123';
       
-      await rangesApi.getTemplateById(templateId);
+      await rangesApi.getBlueprintById(blueprintId);
       
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining(`/api/v1/templates/ranges/${templateId}`),
+        expect.stringContaining(`/api/v1/blueprints/ranges/${blueprintId}`),
         expect.objectContaining({
           method: 'GET',
           credentials: 'include'
@@ -246,31 +246,31 @@ describe('API', () => {
       );
     });
 
-    it('createTemplate sends template data', async () => {
-      const templateData = { name: 'New Template', provider: 'aws' };
+    it('createBlueprint sends blueprint data', async () => {
+      const blueprintData = { name: 'New Blueprint', provider: 'aws' };
       
-      await rangesApi.createTemplate(templateData);
+      await rangesApi.createBlueprint(blueprintData);
       
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/api/v1/templates/ranges'),
+        expect.stringContaining('/api/v1/blueprints/ranges'),
         expect.objectContaining({
           method: 'POST',
-          body: expect.stringContaining('New Template'),
+          body: expect.stringContaining('New Blueprint'),
           credentials: 'include'
         })
       );
     });
 
-    it('deployTemplate sends the correct template ID', async () => {
-      const templateId = '456';
+    it('deployBlueprint sends the correct blueprint ID', async () => {
+      const blueprintId = '456';
       
-      await rangesApi.deployTemplate(templateId);
+      await rangesApi.deployBlueprint(blueprintId);
       
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining('/api/v1/ranges/deploy'),
         expect.objectContaining({
           method: 'POST',
-          body: expect.stringContaining(templateId),
+          body: expect.stringContaining(blueprintId),
           credentials: 'include'
         })
       );

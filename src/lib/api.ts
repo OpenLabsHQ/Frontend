@@ -372,47 +372,59 @@ export const rangesApi = {
     return await apiRequest<any>(`/api/v1/ranges/${id}`, 'GET', undefined, true)
   },
 
-  getTemplates: async () => {
+  getBlueprints: async () => {
     return await apiRequest<any[]>(
-      '/api/v1/templates/ranges',
+      '/api/v1/blueprints/ranges',
       'GET',
       undefined,
       true
     )
   },
 
-  getTemplateById: async (id: string) => {
+  getBlueprintById: async (id: string) => {
     return await apiRequest<any>(
-      `/api/v1/templates/ranges/${id}`,
+      `/api/v1/blueprints/ranges/${id}`,
       'GET',
       undefined,
       true
     )
   },
 
-  createTemplate: async (templateData: any) => {
+  createBlueprint: async (blueprintData: any) => {
     return await apiRequest<any>(
-      '/api/v1/templates/ranges',
+      '/api/v1/blueprints/ranges',
       'POST',
-      templateData,
+      blueprintData,
       true
     )
   },
 
-  // Deploy a range from a template
-  deployTemplate: async (templateId: string) => {
+  // Deploy a range from a blueprint
+  deployBlueprint: async (
+    blueprintId: string,
+    name: string,
+    description: string,
+    region: 'us_east_1' | 'us_east_2',
+    readme?: string
+  ) => {
     return await apiRequest<any>(
       '/api/v1/ranges/deploy',
       'POST',
-      [{ id: templateId }],
+      {
+        blueprint_id: parseInt(blueprintId), // Convert to int as IDs are now integers
+        name,
+        description,
+        region,
+        readme: readme || null
+      },
       true
     )
   },
 
-  // Delete a template by ID
-  deleteTemplate: async (templateId: string) => {
+  // Delete a blueprint by ID
+  deleteBlueprint: async (blueprintId: string) => {
     return await apiRequest<any>(
-      `/api/v1/templates/ranges/${templateId}`,
+      `/api/v1/blueprints/ranges/${blueprintId}`,
       'DELETE',
       undefined,
       true
@@ -420,9 +432,137 @@ export const rangesApi = {
   },
 }
 
-export const templatesApi = {
-  getVpcTemplates: async () => {
+export const blueprintsApi = {
+  getVpcBlueprints: async () => {
     return await rangesApi.getRanges()
+  },
+}
+
+// Import workspace types
+import type {
+  Workspace,
+  WorkspaceUser,
+  WorkspaceCreate,
+  WorkspaceUpdate,
+  WorkspaceUserCreate,
+  AvailableUser
+} from './types/workspaces';
+
+export const workspacesApi = {
+  // Get all workspaces the user has access to
+  getWorkspaces: async () => {
+    return await apiRequest<Workspace[]>('/api/v1/workspaces', 'GET', undefined, true)
+  },
+
+  // Create a new workspace
+  createWorkspace: async (data: WorkspaceCreate) => {
+    return await apiRequest<Workspace>('/api/v1/workspaces', 'POST', data, true)
+  },
+
+  // Get a specific workspace by ID
+  getWorkspaceById: async (id: string) => {
+    return await apiRequest<Workspace>(`/api/v1/workspaces/${id}`, 'GET', undefined, true)
+  },
+
+  // Update a workspace
+  updateWorkspace: async (id: string, data: WorkspaceUpdate) => {
+    return await apiRequest<Workspace>(`/api/v1/workspaces/${id}`, 'PUT', data, true)
+  },
+
+  // Delete a workspace
+  deleteWorkspace: async (id: string) => {
+    return await apiRequest<{success: boolean}>(`/api/v1/workspaces/${id}`, 'DELETE', undefined, true)
+  },
+
+  // Get all users in a workspace
+  getWorkspaceUsers: async (workspaceId: string) => {
+    return await apiRequest<WorkspaceUser[]>(
+      `/api/v1/workspaces/${workspaceId}/users`,
+      'GET',
+      undefined,
+      true
+    )
+  },
+
+  // Add a user to a workspace
+  addWorkspaceUser: async (workspaceId: string, data: WorkspaceUserCreate) => {
+    return await apiRequest<WorkspaceUser>(
+      `/api/v1/workspaces/${workspaceId}/users`,
+      'POST',
+      data,
+      true
+    )
+  },
+
+  // Remove a user from a workspace
+  removeWorkspaceUser: async (workspaceId: string, userId: string) => {
+    return await apiRequest<{success: boolean}>(
+      `/api/v1/workspaces/${workspaceId}/users/${userId}`,
+      'DELETE',
+      undefined,
+      true
+    )
+  },
+
+  // Update user role in workspace (promote/demote)
+  updateWorkspaceUserRole: async (workspaceId: string, userId: string, role: 'admin' | 'member') => {
+    return await apiRequest<WorkspaceUser>(
+      `/api/v1/workspaces/${workspaceId}/users/${userId}`,
+      'PUT',
+      { role },
+      true
+    )
+  },
+
+  // Get users not yet in the workspace
+  getAvailableUsers: async (workspaceId: string) => {
+    return await apiRequest<AvailableUser[]>(
+      `/api/v1/workspaces/${workspaceId}/available-users`,
+      'GET',
+      undefined,
+      true
+    )
+  },
+  
+  // Get all users in the system
+  getAllUsers: async () => {
+    return await apiRequest<AvailableUser[]>(
+      '/api/v1/users',
+      'GET',
+      undefined,
+      true
+    )
+  },
+
+  // Get blueprints shared in a workspace
+  getWorkspaceBlueprints: async (workspaceId: string) => {
+    return await apiRequest<any[]>(
+      `/api/v1/workspaces/${workspaceId}/blueprints`,
+      'GET',
+      undefined,
+      true
+    )
+  },
+
+  // Share a blueprint with a workspace
+  shareBlueprintWithWorkspace: async (workspaceId: string, blueprintId: string) => {
+    return await apiRequest<{success: boolean}>(
+      `/api/v1/workspaces/${workspaceId}/blueprints`,
+      'POST',
+      { blueprint_id: parseInt(blueprintId) },
+      true
+    )
+  },
+
+  // Remove a blueprint from a workspace
+  // Note: blueprintId should be the actual blueprint ID (not the sharing record ID)
+  removeBlueprintFromWorkspace: async (workspaceId: string, blueprintId: string) => {
+    return await apiRequest<{success: boolean}>(
+      `/api/v1/workspaces/${workspaceId}/blueprints/${blueprintId}`,
+      'DELETE',
+      undefined,
+      true
+    )
   },
 }
 
@@ -430,5 +570,6 @@ export default {
   auth: authApi,
   user: userApi,
   ranges: rangesApi,
-  templates: templatesApi,
+  blueprints: blueprintsApi,
+  workspaces: workspacesApi,
 }

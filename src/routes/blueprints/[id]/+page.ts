@@ -5,8 +5,8 @@ import type { PageLoad } from './$types'
 export const ssr = false
 
 export const load = (({ params }) => {
-  // Just return the template ID
+  // Just return the blueprint ID
   return {
-    templateId: params.id,
+    blueprintId: params.id,
   }
 }) satisfies PageLoad

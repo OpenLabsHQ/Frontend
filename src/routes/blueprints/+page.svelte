@@ -1,13 +1,13 @@
 <script lang="ts">
   import { onMount } from 'svelte'
   import { goto } from '$app/navigation'
-  import TemplateList from '$lib/components/TemplateList.svelte'
+  import BlueprintList from '$lib/components/BlueprintList.svelte'
   import Sidebar from '$lib/components/Sidebar.svelte'
   import { rangesApi } from '$lib/api'
   import { auth } from '$lib/stores/auth'
 
-  // Define the template interface to match the API response
-  interface Template {
+  // Define the blueprint interface to match the API response
+  interface Blueprint {
     id: string
     provider: string
     name: string
@@ -17,10 +17,10 @@
   }
 
   // Initialize with empty array, will be populated from API
-  let templates: Template[] = []
+  let blueprints: Blueprint[] = []
 
-  // Fallback templates to show if API fails
-  const fallbackTemplates: Template[] = [
+  // Fallback blueprints to show if API fails
+  const fallbackBlueprints: Blueprint[] = [
     {
       id: '1',
       provider: 'aws',
@@ -70,47 +70,47 @@
       return
     }
 
-    // If authenticated, fetch templates from the API
+    // If authenticated, fetch blueprints from the API
     try {
       isLoading = true
-      const result = await rangesApi.getTemplates()
+      const result = await rangesApi.getBlueprints()
 
       if (result.error) {
         // Set a user-friendly error message
         if (result.error.includes('not be found')) {
-          // 404 error - show no templates message instead of error
-          templates = [] // Empty array to trigger the "No templates found" UI
+          // 404 error - show no blueprints message instead of error
+          blueprints = [] // Empty array to trigger the "No blueprints found" UI
         } else {
           // Other errors - show in the UI with fallback data
           error = result.error
           // Use fallback data for other errors
-          templates = fallbackTemplates
+          blueprints = fallbackBlueprints
         }
       } else if (result.data && Array.isArray(result.data)) {
-        // Map API response to our Template interface
-        templates = result.data.map((template) => ({
+        // Map API response to our Blueprint interface
+        blueprints = result.data.map((blueprint) => ({
           id:
-            template.id ||
-            `template_${Math.random().toString(36).substr(2, 9)}`,
-          provider: template.provider || 'default',
-          name: template.name || 'Unnamed Template',
-          vnc: template.vnc || false,
-          vpn: template.vpn || false,
-          description: template.description,
+            blueprint.id ||
+            `blueprint_${Math.random().toString(36).substr(2, 9)}`,
+          provider: blueprint.provider || 'default',
+          name: blueprint.name || 'Unnamed Blueprint',
+          vnc: blueprint.vnc || false,
+          vpn: blueprint.vpn || false,
+          description: blueprint.description,
         }))
 
-        // If no templates were returned, show empty state
-        if (templates.length === 0) {
-          console.log('No templates returned from API')
+        // If no blueprints were returned, show empty state
+        if (blueprints.length === 0) {
+          console.log('No blueprints returned from API')
         }
       } else {
         error = 'Invalid data received from server'
         // Use fallback data
-        templates = fallbackTemplates
+        blueprints = fallbackBlueprints
       }
     } catch {
       // Use fallback data on error
-      templates = fallbackTemplates
+      blueprints = fallbackBlueprints
     } finally {
       isLoading = false
     }
@@ -118,18 +118,18 @@
 </script>
 
 <svelte:head>
-  <title>OpenLabs | Range Templates</title>
+  <title>OpenLabs | Blueprints</title>
 </svelte:head>
 
 <div class="font-roboto flex h-screen bg-gray-100">
   <!-- Fixed sidebar -->
-  <div class="fixed inset-y-0 left-0 z-10 w-52">
+  <div class="fixed inset-y-0 left-0 z-10 w-54">
     <Sidebar />
   </div>
 
   <!-- Main content with sidebar margin -->
-  <div class="ml-52 flex-1">
-    <TemplateList {searchTerm} {templates} {isLoading} {error} />
+  <div class="ml-54 flex-1">
+    <BlueprintList searchTerm={searchTerm} blueprints={blueprints} isLoading={isLoading} error={error} />
   </div>
 </div>
 

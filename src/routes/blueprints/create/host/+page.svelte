@@ -1,10 +1,10 @@
 <script lang="ts">
   import { goto } from '$app/navigation'
   import {
-    templateWizard,
-    type TemplateHost,
-    type TemplateVPC,
-  } from '$lib/stores/template-wizard'
+    blueprintWizard,
+    type BlueprintHost,
+    type BlueprintVPC,
+  } from '$lib/stores/blueprint-wizard'
   import { onMount } from 'svelte'
   import { OSOptions, type OpenLabsOS, osSizeThresholds } from '$lib/types/os'
   import { SpecOptions, type OpenLabsSpec } from '$lib/types/specs'
@@ -12,7 +12,7 @@
   // VPC and subnet selection
   let selectedVpcIndex = 0
   let selectedSubnetIndex = 0
-  let vpcs: TemplateVPC[] = []
+  let vpcs: BlueprintVPC[] = []
 
   // Host form data
   let hostname = ''
@@ -43,15 +43,15 @@
   // Initialize from store
   onMount(() => {
     // Check if we have subnets before proceeding
-    const hasSubnets = $templateWizard.vpcs.some(
+    const hasSubnets = $blueprintWizard.vpcs.some(
       (vpc) => vpc.subnets.length > 0
     )
     if (!hasSubnets) {
-      goto('/templates/create/subnet')
+      goto('/blueprints/create/subnet')
       return
     }
 
-    vpcs = [...$templateWizard.vpcs]
+    vpcs = [...$blueprintWizard.vpcs]
 
     // Find first VPC with subnets
     const vpcWithSubnetsIndex = vpcs.findIndex((vpc) => vpc.subnets.length > 0)
@@ -183,7 +183,7 @@
     if (validateForm()) {
       if (count === 1) {
         // Create a single host
-        const newHost: TemplateHost = {
+        const newHost: BlueprintHost = {
           hostname,
           os,
           spec,
@@ -193,7 +193,7 @@
         }
 
         // Add to store
-        templateWizard.addHost(selectedVpcIndex, selectedSubnetIndex, newHost)
+        blueprintWizard.addHost(selectedVpcIndex, selectedSubnetIndex, newHost)
       } else {
         // Create multiple hosts with sequential hostnames
         const baseHostname = hostname.endsWith('-') ? hostname : `${hostname}-`
@@ -202,7 +202,7 @@
         for (let i = 1; i <= count; i++) {
           const newHostname = `${baseHostname}${i}`
 
-          const newHost: TemplateHost = {
+          const newHost: BlueprintHost = {
             hostname: newHostname,
             os,
             spec,
@@ -210,12 +210,12 @@
             tags: getTags(),
           }
 
-          templateWizard.addHost(selectedVpcIndex, selectedSubnetIndex, newHost)
+          blueprintWizard.addHost(selectedVpcIndex, selectedSubnetIndex, newHost)
         }
       }
 
       // Update local state
-      vpcs = [...$templateWizard.vpcs]
+      vpcs = [...$blueprintWizard.vpcs]
 
       // Reset form
       hostname = ''
@@ -225,8 +225,8 @@
   }
 
   function removeHost(hostIndex: number) {
-    templateWizard.removeHost(selectedVpcIndex, selectedSubnetIndex, hostIndex)
-    vpcs = [...$templateWizard.vpcs]
+    blueprintWizard.removeHost(selectedVpcIndex, selectedSubnetIndex, hostIndex)
+    vpcs = [...$blueprintWizard.vpcs]
   }
 
   let validationError = ''
@@ -243,7 +243,7 @@
     }
 
     validationError = ''
-    goto('/templates/create/review')
+    goto('/blueprints/create/review')
   }
 
   // Handle VPC change - reset subnet selection
@@ -275,7 +275,7 @@
     }
 
     // Call the store method to duplicate hosts
-    templateWizard.duplicateHosts(
+    blueprintWizard.duplicateHosts(
       sourceVpcIndex,
       sourceSubnetIndex,
       selectedVpcIndex,
@@ -283,7 +283,7 @@
     )
 
     // Update local state
-    vpcs = [...$templateWizard.vpcs]
+    vpcs = [...$blueprintWizard.vpcs]
 
     // Hide duplication panel
     showDuplicateOptions = false
@@ -291,7 +291,7 @@
 </script>
 
 <svelte:head>
-  <title>Host Configuration | Create Template</title>
+  <title>Host Configuration | Create Blueprint</title>
 </svelte:head>
 
 <div class="mx-auto max-w-4xl rounded-lg bg-white p-6 shadow-sm">
@@ -882,7 +882,7 @@
     <button
       type="button"
       class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
-      on:click={() => goto('/templates/create/subnet')}
+      on:click={() => goto('/blueprints/create/subnet')}
     >
       Back
     </button>

@@ -1,15 +1,15 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { templateWizard, type TemplateHost, type TemplateSubnet, type TemplateVPC } from '../../../src/lib/stores/template-wizard';
+import { blueprintWizard, type BlueprintHost, type BlueprintSubnet, type BlueprintVPC } from '../../../src/lib/stores/blueprint-wizard';
 
-describe('Template Wizard Store', () => {
+describe('Blueprint Wizard Store', () => {
   // Reset the store before each test
   beforeEach(() => {
-    templateWizard.reset();
+    blueprintWizard.reset();
   });
   
   it('starts with initial state', () => {
     let value;
-    const unsubscribe = templateWizard.subscribe(state => {
+    const unsubscribe = blueprintWizard.subscribe(state => {
       value = state;
     });
     
@@ -26,12 +26,12 @@ describe('Template Wizard Store', () => {
   describe('setRangeDetails', () => {
     it('updates range details correctly', () => {
       let value;
-      const unsubscribe = templateWizard.subscribe(state => {
+      const unsubscribe = blueprintWizard.subscribe(state => {
         value = state;
       });
       
       // Set range details
-      templateWizard.setRangeDetails('Test Range', 'azure', true, true);
+      blueprintWizard.setRangeDetails('Test Range', 'azure', true, true);
       
       // Check values
       expect(value.name).toBe('Test Range');
@@ -44,7 +44,7 @@ describe('Template Wizard Store', () => {
   });
   
   describe('VPC operations', () => {
-    const testVpc: TemplateVPC = {
+    const testVpc: BlueprintVPC = {
       name: 'Test VPC',
       cidr: '10.0.0.0/16',
       subnets: []
@@ -52,11 +52,11 @@ describe('Template Wizard Store', () => {
     
     it('adds a VPC', () => {
       let value;
-      const unsubscribe = templateWizard.subscribe(state => {
+      const unsubscribe = blueprintWizard.subscribe(state => {
         value = state;
       });
       
-      templateWizard.addVPC(testVpc);
+      blueprintWizard.addVPC(testVpc);
       
       expect(value.vpcs.length).toBe(1);
       expect(value.vpcs[0].name).toBe('Test VPC');
@@ -66,16 +66,16 @@ describe('Template Wizard Store', () => {
     
     it('updates an existing VPC', () => {
       let value;
-      const unsubscribe = templateWizard.subscribe(state => {
+      const unsubscribe = blueprintWizard.subscribe(state => {
         value = state;
       });
       
       // Add VPC first
-      templateWizard.addVPC(testVpc);
+      blueprintWizard.addVPC(testVpc);
       
       // Update it
       const updatedVpc = { ...testVpc, name: 'Updated VPC' };
-      templateWizard.updateVPC(0, updatedVpc);
+      blueprintWizard.updateVPC(0, updatedVpc);
       
       expect(value.vpcs[0].name).toBe('Updated VPC');
       
@@ -84,16 +84,16 @@ describe('Template Wizard Store', () => {
     
     it('removes a VPC', () => {
       let value;
-      const unsubscribe = templateWizard.subscribe(state => {
+      const unsubscribe = blueprintWizard.subscribe(state => {
         value = state;
       });
       
       // Add VPCs
-      templateWizard.addVPC({ ...testVpc, name: 'VPC 1' });
-      templateWizard.addVPC({ ...testVpc, name: 'VPC 2' });
+      blueprintWizard.addVPC({ ...testVpc, name: 'VPC 1' });
+      blueprintWizard.addVPC({ ...testVpc, name: 'VPC 2' });
       
       // Remove first VPC
-      templateWizard.removeVPC(0);
+      blueprintWizard.removeVPC(0);
       
       expect(value.vpcs.length).toBe(1);
       expect(value.vpcs[0].name).toBe('VPC 2');
@@ -103,13 +103,13 @@ describe('Template Wizard Store', () => {
   });
   
   describe('Subnet operations', () => {
-    const testVpc: TemplateVPC = {
+    const testVpc: BlueprintVPC = {
       name: 'Test VPC',
       cidr: '10.0.0.0/16',
       subnets: []
     };
     
-    const testSubnet: TemplateSubnet = {
+    const testSubnet: BlueprintSubnet = {
       name: 'Test Subnet',
       cidr: '10.0.1.0/24',
       hosts: []
@@ -117,15 +117,15 @@ describe('Template Wizard Store', () => {
     
     it('adds a subnet to a VPC', () => {
       let value;
-      const unsubscribe = templateWizard.subscribe(state => {
+      const unsubscribe = blueprintWizard.subscribe(state => {
         value = state;
       });
       
       // Add VPC first
-      templateWizard.addVPC(testVpc);
+      blueprintWizard.addVPC(testVpc);
       
       // Add subnet
-      templateWizard.addSubnet(0, testSubnet);
+      blueprintWizard.addSubnet(0, testSubnet);
       
       expect(value.vpcs[0].subnets.length).toBe(1);
       expect(value.vpcs[0].subnets[0].name).toBe('Test Subnet');
@@ -135,17 +135,17 @@ describe('Template Wizard Store', () => {
     
     it('updates an existing subnet', () => {
       let value;
-      const unsubscribe = templateWizard.subscribe(state => {
+      const unsubscribe = blueprintWizard.subscribe(state => {
         value = state;
       });
       
       // Add VPC and subnet
-      templateWizard.addVPC(testVpc);
-      templateWizard.addSubnet(0, testSubnet);
+      blueprintWizard.addVPC(testVpc);
+      blueprintWizard.addSubnet(0, testSubnet);
       
       // Update subnet
       const updatedSubnet = { ...testSubnet, name: 'Updated Subnet' };
-      templateWizard.updateSubnet(0, 0, updatedSubnet);
+      blueprintWizard.updateSubnet(0, 0, updatedSubnet);
       
       expect(value.vpcs[0].subnets[0].name).toBe('Updated Subnet');
       
@@ -154,17 +154,17 @@ describe('Template Wizard Store', () => {
     
     it('removes a subnet', () => {
       let value;
-      const unsubscribe = templateWizard.subscribe(state => {
+      const unsubscribe = blueprintWizard.subscribe(state => {
         value = state;
       });
       
       // Add VPC and subnets
-      templateWizard.addVPC(testVpc);
-      templateWizard.addSubnet(0, { ...testSubnet, name: 'Subnet 1' });
-      templateWizard.addSubnet(0, { ...testSubnet, name: 'Subnet 2' });
+      blueprintWizard.addVPC(testVpc);
+      blueprintWizard.addSubnet(0, { ...testSubnet, name: 'Subnet 1' });
+      blueprintWizard.addSubnet(0, { ...testSubnet, name: 'Subnet 2' });
       
       // Remove the first subnet
-      templateWizard.removeSubnet(0, 0);
+      blueprintWizard.removeSubnet(0, 0);
       
       expect(value.vpcs[0].subnets.length).toBe(1);
       expect(value.vpcs[0].subnets[0].name).toBe('Subnet 2');
@@ -174,19 +174,19 @@ describe('Template Wizard Store', () => {
   });
   
   describe('Host operations', () => {
-    const testVpc: TemplateVPC = {
+    const testVpc: BlueprintVPC = {
       name: 'Test VPC',
       cidr: '10.0.0.0/16',
       subnets: []
     };
     
-    const testSubnet: TemplateSubnet = {
+    const testSubnet: BlueprintSubnet = {
       name: 'Test Subnet',
       cidr: '10.0.1.0/24',
       hosts: []
     };
     
-    const testHost: TemplateHost = {
+    const testHost: BlueprintHost = {
       hostname: 'test-host',
       os: 'linux',
       spec: 'small',
@@ -196,16 +196,16 @@ describe('Template Wizard Store', () => {
     
     it('adds a host to a subnet', () => {
       let value;
-      const unsubscribe = templateWizard.subscribe(state => {
+      const unsubscribe = blueprintWizard.subscribe(state => {
         value = state;
       });
       
       // Add VPC and subnet
-      templateWizard.addVPC(testVpc);
-      templateWizard.addSubnet(0, testSubnet);
+      blueprintWizard.addVPC(testVpc);
+      blueprintWizard.addSubnet(0, testSubnet);
       
       // Add host
-      templateWizard.addHost(0, 0, testHost);
+      blueprintWizard.addHost(0, 0, testHost);
       
       expect(value.vpcs[0].subnets[0].hosts.length).toBe(1);
       expect(value.vpcs[0].subnets[0].hosts[0].hostname).toBe('test-host');
@@ -215,18 +215,18 @@ describe('Template Wizard Store', () => {
     
     it('updates an existing host', () => {
       let value;
-      const unsubscribe = templateWizard.subscribe(state => {
+      const unsubscribe = blueprintWizard.subscribe(state => {
         value = state;
       });
       
       // Add VPC, subnet, and host
-      templateWizard.addVPC(testVpc);
-      templateWizard.addSubnet(0, testSubnet);
-      templateWizard.addHost(0, 0, testHost);
+      blueprintWizard.addVPC(testVpc);
+      blueprintWizard.addSubnet(0, testSubnet);
+      blueprintWizard.addHost(0, 0, testHost);
       
       // Update host
       const updatedHost = { ...testHost, hostname: 'updated-host', os: 'windows' };
-      templateWizard.updateHost(0, 0, 0, updatedHost);
+      blueprintWizard.updateHost(0, 0, 0, updatedHost);
       
       expect(value.vpcs[0].subnets[0].hosts[0].hostname).toBe('updated-host');
       expect(value.vpcs[0].subnets[0].hosts[0].os).toBe('windows');
@@ -236,18 +236,18 @@ describe('Template Wizard Store', () => {
     
     it('removes a host', () => {
       let value;
-      const unsubscribe = templateWizard.subscribe(state => {
+      const unsubscribe = blueprintWizard.subscribe(state => {
         value = state;
       });
       
       // Add VPC, subnet, and hosts
-      templateWizard.addVPC(testVpc);
-      templateWizard.addSubnet(0, testSubnet);
-      templateWizard.addHost(0, 0, { ...testHost, hostname: 'host-1' });
-      templateWizard.addHost(0, 0, { ...testHost, hostname: 'host-2' });
+      blueprintWizard.addVPC(testVpc);
+      blueprintWizard.addSubnet(0, testSubnet);
+      blueprintWizard.addHost(0, 0, { ...testHost, hostname: 'host-1' });
+      blueprintWizard.addHost(0, 0, { ...testHost, hostname: 'host-2' });
       
       // Remove the first host
-      templateWizard.removeHost(0, 0, 0);
+      blueprintWizard.removeHost(0, 0, 0);
       
       expect(value.vpcs[0].subnets[0].hosts.length).toBe(1);
       expect(value.vpcs[0].subnets[0].hosts[0].hostname).toBe('host-2');
@@ -259,38 +259,38 @@ describe('Template Wizard Store', () => {
   describe('duplicateHosts', () => {
     it('copies hosts from one subnet to another with unique hostnames', () => {
       let value;
-      const unsubscribe = templateWizard.subscribe(state => {
+      const unsubscribe = blueprintWizard.subscribe(state => {
         value = state;
       });
       
       // Add two VPCs with subnets
-      templateWizard.addVPC({
+      blueprintWizard.addVPC({
         name: 'VPC 1',
         cidr: '10.0.0.0/16',
         subnets: []
       });
       
-      templateWizard.addVPC({
+      blueprintWizard.addVPC({
         name: 'VPC 2',
         cidr: '10.1.0.0/16',
         subnets: []
       });
       
       // Add subnets
-      templateWizard.addSubnet(0, {
+      blueprintWizard.addSubnet(0, {
         name: 'Source Subnet',
         cidr: '10.0.1.0/24',
         hosts: []
       });
       
-      templateWizard.addSubnet(1, {
+      blueprintWizard.addSubnet(1, {
         name: 'Target Subnet',
         cidr: '10.1.1.0/24',
         hosts: []
       });
       
       // Add hosts to source subnet
-      templateWizard.addHost(0, 0, {
+      blueprintWizard.addHost(0, 0, {
         hostname: 'server-1',
         os: 'linux',
         spec: 'small',
@@ -298,7 +298,7 @@ describe('Template Wizard Store', () => {
         tags: ['web']
       });
       
-      templateWizard.addHost(0, 0, {
+      blueprintWizard.addHost(0, 0, {
         hostname: 'server-2',
         os: 'windows',
         spec: 'medium',
@@ -307,7 +307,7 @@ describe('Template Wizard Store', () => {
       });
       
       // Add a host to target subnet with the same name
-      templateWizard.addHost(1, 0, {
+      blueprintWizard.addHost(1, 0, {
         hostname: 'server-1',
         os: 'linux',
         spec: 'large',
@@ -316,7 +316,7 @@ describe('Template Wizard Store', () => {
       });
       
       // Duplicate hosts from source to target
-      templateWizard.duplicateHosts(0, 0, 1, 0);
+      blueprintWizard.duplicateHosts(0, 0, 1, 0);
       
       // Check the target subnet
       const targetSubnet = value.vpcs[1].subnets[0];
@@ -336,20 +336,20 @@ describe('Template Wizard Store', () => {
   
   it('reset() returns store to initial state', () => {
     let value;
-    const unsubscribe = templateWizard.subscribe(state => {
+    const unsubscribe = blueprintWizard.subscribe(state => {
       value = state;
     });
     
     // Set various values
-    templateWizard.setRangeDetails('Test Range', 'azure', true, true);
-    templateWizard.addVPC({
+    blueprintWizard.setRangeDetails('Test Range', 'azure', true, true);
+    blueprintWizard.addVPC({
       name: 'Test VPC',
       cidr: '10.0.0.0/16',
       subnets: []
     });
     
     // Reset the store
-    templateWizard.reset();
+    blueprintWizard.reset();
     
     // Check that values are back to defaults
     expect(value.name).toBe('');

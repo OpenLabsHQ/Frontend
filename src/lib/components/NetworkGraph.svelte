@@ -4,7 +4,7 @@
   import LoadingSpinner from './LoadingSpinner.svelte'
 
   // Props
-  export let templateData
+  export let blueprintData
 
   // Network visualization
   let network = null
@@ -18,8 +18,8 @@
   onMount(async () => {
     if (browser) {
       try {
-        if (!templateData) {
-          error = 'No template data available'
+        if (!blueprintData) {
+          error = 'No blueprint data available'
           isLoading = false
           return
         }
@@ -65,19 +65,19 @@
       size: 40,
     })
 
-    // Get the VPC data - could be in templateData.vpc or templateData.vpcs[0]
+    // Get the VPC data - could be in blueprintData.vpc or blueprintData.vpcs[0]
     let vpc = null
 
-    if (templateData.vpc) {
+    if (blueprintData.vpc) {
       // Single vpc structure
-      vpc = templateData.vpc
+      vpc = blueprintData.vpc
     } else if (
-      templateData.vpcs &&
-      Array.isArray(templateData.vpcs) &&
-      templateData.vpcs.length > 0
+      blueprintData.vpcs &&
+      Array.isArray(blueprintData.vpcs) &&
+      blueprintData.vpcs.length > 0
     ) {
       // Array of vpcs (use the first one for visualization)
-      vpc = templateData.vpcs[0]
+      vpc = blueprintData.vpcs[0]
     }
 
     if (!vpc) {
@@ -87,7 +87,7 @@
 
     // Add VPC node
     const vpcId = 'vpc'
-    const vpcName = vpc.name || templateData.name || 'VPC'
+    const vpcName = vpc.name || blueprintData.name || 'VPC'
     const vpcCidr = vpc.cidr || ''
 
     nodes.add({
@@ -123,8 +123,8 @@
       rawSubnets = Object.values(vpc.subnets)
     }
     // Option 4: Check if subnet is directly a property
-    else if (templateData.subnet && Array.isArray(templateData.subnet)) {
-      rawSubnets = templateData.subnet
+    else if (blueprintData.subnet && Array.isArray(blueprintData.subnet)) {
+      rawSubnets = blueprintData.subnet
     }
 
     // Create special Admin subnet with Jumpbox (implicit for every VPC)
@@ -184,7 +184,7 @@
     })
 
     // Add VPN-ed Attackers node only if VPN is enabled
-    const vpnEnabled = templateData.vpn === true
+    const vpnEnabled = blueprintData.vpn === true
 
     if (vpnEnabled) {
       // Add VPN-ed Attackers node (connected only to JumpBox)
@@ -314,7 +314,7 @@
       })
     })
 
-    // Note: We no longer add a separate VPN node based on the templateData.vpn property,
+    // Note: We no longer add a separate VPN node based on the blueprintData.vpn property,
     // as we now have the hard-coded VPN-ed Attackers node connected to the Admin subnet
 
     // Network visualization options
