@@ -42,9 +42,10 @@
         </svg>
       </div>
     </div>
-    <button
+    <a
+      href="/blueprints"
       class="cursor-pointer rounded bg-blue-500 px-4 py-2 text-base text-white hover:bg-blue-700"
-      >Create range</button
+      >Create range</a
     >
   </div>
 
@@ -126,11 +127,12 @@
             You don't have any cyber ranges yet. Create your first range to
             start building your lab environment!
           </p>
-          <button
-            class="rounded-md bg-blue-600 px-6 py-3 font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
+          <a
+            href="/blueprints"
+            class="inline-block rounded-md bg-blue-600 px-6 py-3 font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
           >
             Create your first range
-          </button>
+          </a>
         </div>
       </div>
     {:else}
@@ -201,8 +203,9 @@
                 <span class="ml-1">Start</span>
               {/if}
             </button>
-            <button
-              class="rounded-full bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+            <a 
+              href={`/ranges/${post.id}`}
+              class="inline-flex items-center rounded-full bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
             >
               <span>Manage</span>
               <svg
@@ -215,7 +218,7 @@
                   d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828zM4 12v4h4l10-10-4-4L4 12z"
                 />
               </svg>
-            </button>
+            </a>
           </div>
         </div>
       {/each}
