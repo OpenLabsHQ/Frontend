@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte'
-  import { goto } from '$app/navigation'
+  import { goto, beforeNavigate } from '$app/navigation'
   import { rangesApi } from '$lib/api'
   import { browser } from '$app/environment'
   import { auth } from '$lib/stores/auth'
@@ -38,10 +38,22 @@
     }
   }
   
+  // Use beforeNavigate (Svelte's built-in lifecycle hook) to handle navigation events like back button
+  beforeNavigate(({ cancel }) => {
+    if (deployingBlueprint) {
+      if (confirm("A deployment is in progress. If you leave now, the deployment may be interrupted. Are you sure you want to leave?")) {
+        // User confirmed they want to leave, let the navigation proceed
+        return;
+      }
+      // User wants to stay, cancel the navigation
+      cancel();
+    }
+  });
+  
   // Set up and clean up event listeners
   onMount(() => {
     if (browser) {
-      // Add beforeunload event listener when component is mounted
+      // Add beforeunload event listener when component is mounted (for closing tab/window)
       window.addEventListener('beforeunload', handleBeforeUnload);
     }
   });

@@ -2,6 +2,7 @@
   import { rangesApi } from '$lib/api'
   import { onMount, onDestroy } from 'svelte'
   import { browser } from '$app/environment'
+  import { beforeNavigate } from '$app/navigation'
 
   interface Blueprint {
     id: string
@@ -24,7 +25,7 @@
   let isDeploying = false
   let deployingName = ''
   
-  // Function to handle beforeunload event
+  // Function to handle beforeunload event (for tab/window close)
   function handleBeforeUnload(event: BeforeUnloadEvent) {
     if (isDeploying) {
       // Standard way to show a confirmation dialog when leaving page
@@ -34,6 +35,18 @@
       return event.returnValue;
     }
   }
+  
+  // Use beforeNavigate (Svelte's built-in lifecycle hook) to handle navigation events like back button
+  beforeNavigate(({ cancel }) => {
+    if (isDeploying) {
+      if (confirm("A deployment is in progress. If you leave now, the deployment may be interrupted. Are you sure you want to leave?")) {
+        // User confirmed they want to leave, let the navigation proceed
+        return;
+      }
+      // User wants to stay, cancel the navigation
+      cancel();
+    }
+  });
 
   // Provider icons/colors
   const providerIcons = {
