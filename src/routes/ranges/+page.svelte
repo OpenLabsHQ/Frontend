@@ -32,7 +32,7 @@
       id: '2',
       name: 'NCCDC Lab',
       description: 'Lab with 10 Windows, 10 Linux, Kubernetes, and more!',
-      isRunning: false,
+      isRunning: true,
     },
     {
       id: '3',
@@ -45,7 +45,7 @@
       name: 'C2 Practice',
       description:
         'Lab with Sliver, Havoc, Cobalt Strike, Metasploit, and Epire installed.',
-      isRunning: false,
+      isRunning: true,
     },
     {
       id: '5',
@@ -89,7 +89,7 @@
           id: range.id || `range_${Math.random().toString(36).substr(2, 9)}`,
           name: range.name || 'Unnamed Range',
           description: range.description || 'No description',
-          isRunning: range.status === 'running' || range.is_active || false,
+          isRunning: true, // Always show as Started
           created_at: range.created_at,
           updated_at: range.updated_at,
         }))

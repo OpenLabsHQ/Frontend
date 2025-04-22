@@ -372,6 +372,21 @@ export const rangesApi = {
     return await apiRequest<any>(`/api/v1/ranges/${id}`, 'GET', undefined, true)
   },
 
+  // Get SSH key for a range
+  getRangeSSHKey: async (id: string) => {
+    return await apiRequest<any>(`/api/v1/ranges/${id}/key`, 'GET', undefined, true)
+  },
+
+  // Get network graph data for a range
+  getRangeNetworkGraph: async (id: string) => {
+    return await apiRequest<any>(`/api/v1/ranges/${id}/network-graph`, 'GET', undefined, true)
+  },
+
+  // Delete a range by ID
+  deleteRange: async (id: string) => {
+    return await apiRequest<any>(`/api/v1/ranges/${id}`, 'DELETE', undefined, true)
+  },
+
   getBlueprints: async () => {
     return await apiRequest<any[]>(
       '/api/v1/blueprints/ranges',

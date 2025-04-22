@@ -42,9 +42,10 @@
         </svg>
       </div>
     </div>
-    <button
+    <a
+      href="/blueprints"
       class="cursor-pointer rounded bg-blue-500 px-4 py-2 text-base text-white hover:bg-blue-700"
-      >Create range</button
+      >Create range</a
     >
   </div>
 
@@ -126,96 +127,70 @@
             You don't have any cyber ranges yet. Create your first range to
             start building your lab environment!
           </p>
-          <button
-            class="rounded-md bg-blue-600 px-6 py-3 font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
+          <a
+            href="/blueprints"
+            class="inline-block rounded-md bg-blue-600 px-6 py-3 font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
           >
             Create your first range
-          </button>
+          </a>
         </div>
       </div>
     {:else}
       {#each deployedRanges.filter((post) => post.name
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase()) || post.description
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase())) as post}
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) || post.description
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase())) as post}
         <div
-          class="m-4 flex h-56 w-72 flex-col rounded-lg border border-gray-300 bg-white p-4 shadow-sm"
+          class="m-4 flex h-60 w-80 flex-col justify-between rounded-lg border border-gray-300 bg-white p-4 pb-5 shadow-sm"
         >
-          <!-- Status badge -->
-          <div class="mb-2 flex items-center justify-between">
-            <h2 class="text-xl font-bold">{post.name}</h2>
-            <span
-              class={`rounded-full px-2 py-1 text-xs ${post.isRunning ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}
-            >
-              {post.isRunning ? 'Running' : 'Stopped'}
-            </span>
-          </div>
-
-          <!-- Description -->
-          <p class="mb-3 line-clamp-3 text-sm text-gray-700">
-            {post.description}
-          </p>
-
-          <!-- Created date -->
-          <div class="mb-2 text-xs text-gray-500">
-            {#if post.created_at}
-              Created: {new Date(post.created_at).toLocaleDateString()}
-            {:else}
-              Recently created
-            {/if}
-          </div>
-
-          <!-- Action buttons -->
-          <div class="mt-auto flex justify-between">
-            <button
-              class={`rounded-full px-4 py-2 font-bold text-white ${post.isRunning ? 'bg-red-500 hover:bg-red-700' : 'bg-green-500 hover:bg-green-700'}`}
-            >
-              {#if post.isRunning}
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="inline h-5 w-5"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    d="M6 4a1 1 0 011 1v10a1 1 0 01-2 0V5a1 1 0 011-1zm7 0a1 1 0 011 1v10a1 1 0 01-2 0V5a1 1 0 011-1z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
-                <span class="ml-1">Stop</span>
-              {:else}
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="inline h-5 w-5"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    d="M10 5a1 1 0 00-1 1v8a1 1 0 001.555.832l5-4a1 1 0 000-1.664l-5-4A1 1 0 0010 5z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
-                <span class="ml-1">Start</span>
-              {/if}
-            </button>
-            <button
-              class="rounded-full bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
-            >
-              <span>Manage</span>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="ml-1 inline h-5 w-5"
-                viewBox="0 0 20 20"
-                fill="currentColor"
+          <div>
+            <!-- Status badge and name -->
+            <div class="mb-3 flex items-start justify-between">
+              <h2 class="line-clamp-2 max-w-[70%] text-lg font-bold" title={post.name}>
+                {post.name}
+              </h2>
+              <span
+                class={`ml-1 rounded-full px-2 py-1 text-xs whitespace-nowrap ${post.isRunning ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}
               >
-                <path
-                  d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828zM4 12v4h4l10-10-4-4L4 12z"
-                />
-              </svg>
-            </button>
+                {post.isRunning ? 'Started' : 'Stopped'}
+              </span>
+            </div>
+
+            <!-- Description -->
+            <p class="mb-4 line-clamp-2 text-sm text-gray-700">
+              {post.description}
+            </p>
+          </div>
+
+          <div>
+            <!-- Created date -->
+            <div class="mb-4 text-xs text-gray-500">
+              {#if post.created_at}
+                Created: {new Date(post.created_at).toLocaleDateString()}
+              {:else}
+                Recently created
+              {/if}
+            </div>
+
+            <!-- Action buttons -->
+            <div class="flex justify-between">
+              <a 
+                href={`/ranges/${post.id}`}
+                class="rounded-md bg-blue-500 px-4 py-2 text-center text-sm font-bold text-white hover:bg-blue-700"
+              >
+                Manage
+              </a>
+              <button
+                class={`rounded-md px-4 py-2 text-center text-sm font-bold text-white ${post.isRunning ? 'bg-red-500 hover:bg-red-700' : 'bg-green-500 hover:bg-green-700'}`}
+              >
+                {#if post.isRunning}
+                  <span>Stop</span>
+                {:else}
+                  <span>Start</span>
+                {/if}
+              </button>
+            </div>
           </div>
         </div>
       {/each}
