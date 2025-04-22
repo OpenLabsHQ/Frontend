@@ -549,7 +549,7 @@ If you encounter any issues, please contact support.`
             <div class="flex items-center justify-between">
               <h1 class="text-2xl font-bold">{rangeData.name || 'Unnamed Range'}</h1>
               <span class="rounded-full bg-blue-700 px-3 py-1 text-sm">
-                {rangeData.isRunning ? 'Running' : 'Stopped'}
+                {rangeData.isRunning ? 'Started' : 'Stopped'}
               </span>
             </div>
             {#if rangeData.description}
@@ -638,7 +638,7 @@ If you encounter any issues, please contact support.`
                         <span
                           class={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${rangeData.isRunning ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}
                         >
-                          {rangeData.isRunning ? 'Running' : 'Stopped'}
+                          {rangeData.isRunning ? 'Started' : 'Stopped'}
                         </span>
                       </p>
                     </div>
@@ -654,7 +654,9 @@ If you encounter any issues, please contact support.`
                     
                     <div>
                       <h3 class="text-sm font-medium text-gray-500">Region</h3>
-                      <p class="mt-1">{rangeData.region || 'Unknown'}</p>
+                      <p class="mt-1 font-mono text-sm">
+                        <span class="rounded bg-gray-100 p-1">{rangeData.region || 'Unknown'}</span>
+                      </p>
                     </div>
 
 
@@ -702,7 +704,7 @@ If you encounter any issues, please contact support.`
                           {/if}
                         </div>
                         <span class="rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">
-                          Running
+                          Started
                         </span>
                       </div>
                       {#if rangeData.jumpbox_ip || rangeData.jumpbox_public_ip}
@@ -747,7 +749,7 @@ If you encounter any issues, please contact support.`
                                       </p>
                                     </div>
                                     <span class="rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">
-                                      Running
+                                      Started
                                     </span>
                                   </div>
                                 </div>
@@ -785,7 +787,7 @@ If you encounter any issues, please contact support.`
                                   </p>
                                 </div>
                                 <span class="rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">
-                                  Running
+                                  Started
                                 </span>
                               </div>
                             </div>
@@ -819,7 +821,7 @@ If you encounter any issues, please contact support.`
                               </p>
                             </div>
                             <span class="rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">
-                              Running
+                              Started
                             </span>
                           </div>
                         </div>
