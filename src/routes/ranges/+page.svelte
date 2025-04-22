@@ -126,7 +126,7 @@
     </div>
 
     <!-- Main content with sidebar margin -->
-    <div class="ml-52 flex-1">
+    <div class="ml-54 flex-1">
       <RangeList {searchTerm} {deployedRanges} {isLoading} {error} />
     </div>
   </div>

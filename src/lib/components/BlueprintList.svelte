@@ -77,7 +77,13 @@
     deployingBlueprintId = blueprintId
 
     try {
-      const result = await rangesApi.deployBlueprint(blueprintId)
+      // Pass all required parameters just like in the blueprint detail page
+      const result = await rangesApi.deployBlueprint(
+        blueprintId,
+        `${blueprintName} Deployment`,
+        `Deployed from blueprint: ${blueprintName}`,
+        'us_east_1'
+      )
 
       if (result.error) {
         deploymentError = result.error

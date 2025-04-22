@@ -106,12 +106,12 @@
 
 <div class="flex h-screen bg-gray-100">
   <!-- Fixed sidebar -->
-  <div class="fixed inset-y-0 left-0 z-10 w-52">
+  <div class="fixed inset-y-0 left-0 z-10 w-54">
     <Sidebar />
   </div>
 
   <!-- Main content with sidebar margin -->
-  <div class="ml-52 flex flex-1 flex-col">
+  <div class="ml-54 flex flex-1 flex-col">
     <!-- Header with step indicator -->
     <div class="sticky top-0 z-5 border-b bg-white p-6 shadow-sm">
       <h1 class="mb-6 text-2xl font-bold">Create Range Blueprint</h1>

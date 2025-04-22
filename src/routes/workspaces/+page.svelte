@@ -88,7 +88,7 @@
   </div>
 
   <!-- Main content with sidebar margin -->
-  <div class="ml-52 flex-1 overflow-y-auto">
+  <div class="ml-54 flex-1 overflow-y-auto">
     <div class="flex flex-1 flex-wrap content-start">
       <div class="top-10 flex h-15 w-full items-center justify-between border-b border-gray-300 bg-gray-100 p-4">
         <div class="flex items-center">
