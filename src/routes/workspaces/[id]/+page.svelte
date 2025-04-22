@@ -91,7 +91,7 @@
   let isSharingBlueprint = false
   let shareBlueprintError = ''
   let showRemoveBlueprintConfirm = false
-  let BlueprintToRemove = null
+  let blueprintToRemove = null
   let isRemovingBlueprint = false
   let removeBlueprintError = ''
   
