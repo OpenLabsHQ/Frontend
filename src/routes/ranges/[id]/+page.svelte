@@ -937,7 +937,7 @@ If you encounter any issues, please contact support.`
                       <ol class="list-inside list-decimal space-y-2 text-sm">
                         <li>Save the private key to a file (e.g., <code>{(rangeData.name || 'range').toLowerCase().replace(/[^a-z0-9]/g, '-')}.pem</code>) or use the download button</li>
                         <li>Set the correct permissions: <code>chmod 600 {(rangeData.name || 'range').toLowerCase().replace(/[^a-z0-9]/g, '-')}.pem</code></li>
-                        <li>Connect using: <code>ssh -i {(rangeData.name || 'range').toLowerCase().replace(/[^a-z0-9]/g, '-')}.pem user@{rangeData.jumpbox_ip || rangeData.jumpbox_public_ip || 'JUMPBOX_IP'}</code></li>
+                        <li>Connect using: <code>ssh -i {(rangeData.name || 'range').toLowerCase().replace(/[^a-z0-9]/g, '-')}.pem ubuntu@{rangeData.jumpbox_ip || rangeData.jumpbox_public_ip || 'JUMPBOX_IP'}</code></li>
                       </ol>
                     </div>
                     
