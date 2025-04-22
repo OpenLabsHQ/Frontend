@@ -564,7 +564,9 @@ export const workspacesApi = {
     return await apiRequest<{success: boolean}>(
       `/api/v1/workspaces/${workspaceId}/blueprints`,
       'POST',
-      { blueprint_id: parseInt(blueprintId) },
+      { 
+        blueprint_id: parseInt(blueprintId)
+      },
       true
     )
   },

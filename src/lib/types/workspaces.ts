@@ -48,7 +48,8 @@ export interface WorkspaceUserCreate {
 
 // Available user model (for users not yet in workspace)
 export interface AvailableUser {
-  id: string | null;
+  id?: string;
   name: string;
   email: string;
+  admin?: boolean;
 }
