@@ -1,6 +1,7 @@
 <script lang="ts">
   import { rangesApi } from '$lib/api'
-  import { onDestroy } from 'svelte'
+  import { onMount, onDestroy } from 'svelte'
+  import { browser } from '$app/environment'
 
   interface Blueprint {
     id: string
@@ -22,6 +23,17 @@
   let deploymentSuccess: string = ''
   let isDeploying = false
   let deployingName = ''
+  
+  // Function to handle beforeunload event
+  function handleBeforeUnload(event: BeforeUnloadEvent) {
+    if (isDeploying) {
+      // Standard way to show a confirmation dialog when leaving page
+      event.preventDefault();
+      // This message text is displayed in some browsers, but most modern browsers use their own message
+      event.returnValue = "A deployment is in progress. If you leave now, the deployment may be interrupted. Are you sure you want to leave?";
+      return event.returnValue;
+    }
+  }
 
   // Provider icons/colors
   const providerIcons = {
@@ -44,10 +56,23 @@
   // Keep track of any active timers
   let autoCloseTimer: ReturnType<typeof setTimeout> | null = null
 
-  // Clear any timers when component is destroyed
+  // Set up and clean up event listeners
+  onMount(() => {
+    if (browser) {
+      // Add beforeunload event listener when component is mounted
+      window.addEventListener('beforeunload', handleBeforeUnload);
+    }
+  });
+
+  // Clear any timers and event listeners when component is destroyed
   onDestroy(() => {
     if (autoCloseTimer) {
       clearTimeout(autoCloseTimer)
+    }
+    
+    // Remove beforeunload event listener when component is destroyed
+    if (browser) {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
     }
   })
 
