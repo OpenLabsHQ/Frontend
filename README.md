@@ -2,6 +2,48 @@
 
 A modern web application for visualizing network templates and ranges, built with SvelteKit, TailwindCSS, and vis.js.
 
+## Deployment
+
+### Docker Deployment
+
+The application can be containerized using Docker:
+
+```bash
+# Build the Docker image
+docker build -t openlabs-frontend .
+
+# Run the container
+docker run -p 3000:3000 openlabs-frontend
+```
+
+You can also use docker-compose:
+
+```bash
+# Start the application with docker-compose
+docker-compose up
+```
+
+### Static Site Deployment
+
+The application can be built as a static site:
+
+```bash
+# Build the application
+bun run build
+
+# The built files will be in the 'build' directory
+```
+
+### Using Bun adapter
+
+When using the Bun adapter (installed in setup), you can:
+
+```bash
+# Start production server with Bun
+bun run build
+bun ./build/index.js
+```
+
 ## Features
 
 - Template visualization with hierarchical network diagrams
@@ -122,29 +164,6 @@ Then you can build and run directly:
 # Set API URL directly
 VITE_API_URL=https://api.openlabsx.com bun run build:prod
 bun run start
-```
-
-## Deployment
-
-### Static Site Deployment
-
-The application can be built as a static site:
-
-```bash
-# Build the application
-bun run build
-
-# The built files will be in the 'build' directory
-```
-
-### Using Bun adapter
-
-When using the Bun adapter (installed in setup), you can:
-
-```bash
-# Start production server with Bun
-bun run build
-bun ./build/index.js
 ```
 
 ## Development
