@@ -17,6 +17,7 @@
   // Host form data
   let hostname = ''
   let os: OpenLabsOS = 'debian_11'
+  let prevOS: OpenLabsOS = 'debian_11'
   let spec: OpenLabsSpec = 'small'
   let size = 8
   let tagsInput = ''
@@ -60,7 +61,9 @@
     }
 
     // Set initial disk size based on default OS
-    size = osSizeThresholds[os] || 8
+    if (size === null || size === undefined) {
+      size = osSizeThresholds[os] || 8
+    }
   })
 
   // Reactive declarations for current selections
@@ -75,12 +78,16 @@
   $: sourceSubnet = sourceSubnets[sourceSubnetIndex] || null
   $: sourceHosts = sourceSubnet ? sourceSubnet.hosts : []
 
-  // Update size when OS changes
+  // Update size when OS changes or size is changed
   $: {
+    // Only enforce minimum on blur or form submission, not during typing
+    // This allows users to type values below minimum temporarily
     const minSize = osSizeThresholds[os] || 8
-    if (size < minSize) {
+    // We still update the size when OS changes (which could affect minimum requirements)
+    if (size !== null && size !== undefined && os && prevOS !== os && size < minSize) {
       size = minSize
     }
+    prevOS = os
   }
 
   // Clear count error when count changes
@@ -171,7 +178,10 @@
 
     // Validate size
     const minSize = osSizeThresholds[os] || 8
-    if (size < minSize) {
+    if (size === null || size === undefined) {
+      errors.size = `Disk size is required`
+      isValid = false
+    } else if (size < minSize) {
       errors.size = `Minimum disk size for ${os} is ${minSize}GB`
       isValid = false
     }
@@ -740,6 +750,19 @@
           bind:value={size}
           min={osSizeThresholds[os] || 8}
           class="w-full rounded border border-gray-300 p-2 focus:border-blue-500 focus:ring-blue-500"
+          on:input={(e) => {
+            if (e.target.value === '') {
+              // Allow empty value in the input field
+              size = null;
+            }
+          }}
+          on:blur={(e) => {
+            // Enforce minimum size after user finishes typing
+            const minSize = osSizeThresholds[os] || 8;
+            if (size !== null && size !== undefined && size < minSize) {
+              size = minSize;
+            }
+          }}
         />
         {#if errors.size}
           <p class="mt-1 text-sm text-red-600">{errors.size}</p>
