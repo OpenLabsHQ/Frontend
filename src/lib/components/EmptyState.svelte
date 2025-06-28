@@ -43,7 +43,7 @@
     </div>
     
     <!-- Title -->
-    <h3 class="text-lg font-medium text-blue-900 mb-2">
+    <h3 class="text-xl font-bold text-blue-900 mb-2">
       {title}
     </h3>
     

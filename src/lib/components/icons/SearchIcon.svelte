@@ -1,5 +1,5 @@
 <script lang="ts">
-  export let size: string = "h-12 w-12";
+  export let size: string = "h-16 w-16";
   export let color: string = "text-blue-400";
 </script>
 
