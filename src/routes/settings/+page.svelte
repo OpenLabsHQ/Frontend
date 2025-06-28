@@ -5,7 +5,6 @@
   import AuthGuard from '$lib/components/AuthGuard.svelte'
   import LoadingSpinner from '$lib/components/LoadingSpinner.svelte'
   import { fade } from 'svelte/transition'
-  import { goto } from '$app/navigation'
 
   // Password form
   let currentPassword = ''

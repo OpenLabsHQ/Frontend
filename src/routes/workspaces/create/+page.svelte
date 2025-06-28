@@ -16,7 +16,6 @@
   import { auth } from '$lib/stores/auth'
   import { browser } from '$app/environment'
   import Sidebar from '$lib/components/Sidebar.svelte'
-  import LoadingSpinner from '$lib/components/LoadingSpinner.svelte'
 
   // Form state
   let name = ''

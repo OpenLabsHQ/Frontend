@@ -161,7 +161,7 @@
           goto('/blueprints')
         }, 1500)
       }
-    } catch (err) {
+    } catch {
       deleteError = 'An unexpected error occurred while deleting the blueprint'
       setAutoDismiss('error', 'delete', 5000)
     } finally {

@@ -756,7 +756,7 @@
               size = null;
             }
           }}
-          on:blur={(e) => {
+          on:blur={() => {
             // Enforce minimum size after user finishes typing
             const minSize = osSizeThresholds[os] || 8;
             if (size !== null && size !== undefined && size < minSize) {

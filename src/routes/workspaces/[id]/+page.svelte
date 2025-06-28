@@ -426,7 +426,7 @@
   }
 
   // Promote user to admin role
-  async function promoteUser(userId: string, userName: string) {
+  async function promoteUser(userId: string) {
     if (!workspace) return
     
     try {
