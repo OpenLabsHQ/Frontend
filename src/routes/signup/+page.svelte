@@ -3,8 +3,7 @@
   import { goto } from '$app/navigation'
   import { authApi } from '$lib/api'
   import { auth } from '$lib/stores/auth'
-  import AuthGuard from '$lib/components/AuthGuard.svelte'
-  import LoadingSpinner from '$lib/components/LoadingSpinner.svelte'
+  import { AuthGuard, FormInput, Button, ErrorMessage } from '$lib/components'
 
   let name = ''
   let email = ''
@@ -98,74 +97,58 @@
       </div>
 
       <form class="mt-8 space-y-6" on:submit|preventDefault={handleSignup}>
-        <div class="-space-y-px rounded-md shadow-sm">
-          <div>
-            <label for="name" class="sr-only">Full name</label>
-            <input
-              id="name"
-              name="name"
-              type="text"
-              required
-              bind:value={name}
-              class="relative block w-full appearance-none rounded-none rounded-t-md border border-gray-700 bg-gray-800
-                     px-3 py-2 text-white placeholder-gray-500
-                     focus:z-10 focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none sm:text-sm"
-              placeholder="Full name"
-            />
-          </div>
-          <div>
-            <label for="email-address" class="sr-only">Email address</label>
-            <input
-              id="email-address"
-              name="email"
-              type="email"
-              autocomplete="email"
-              required
-              bind:value={email}
-              class="relative block w-full appearance-none rounded-none border border-gray-700 bg-gray-800 px-3
-                     py-2 text-white placeholder-gray-500
-                     focus:z-10 focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none sm:text-sm"
-              placeholder="Email address"
-            />
-          </div>
-          <div>
-            <label for="password" class="sr-only">Password</label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              autocomplete="new-password"
-              required
-              bind:value={password}
-              class="relative block w-full appearance-none rounded-none border border-gray-700 bg-gray-800 px-3
-                     py-2 text-white placeholder-gray-500
-                     focus:z-10 focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none sm:text-sm"
-              placeholder="Password"
-            />
-          </div>
-          <div>
-            <label for="confirm-password" class="sr-only"
-              >Confirm password</label
-            >
-            <input
-              id="confirm-password"
-              name="confirm-password"
-              type="password"
-              autocomplete="new-password"
-              required
-              bind:value={confirmPassword}
-              class="relative block w-full appearance-none rounded-none rounded-b-md border border-gray-700 bg-gray-800
-                     px-3 py-2 text-white placeholder-gray-500
-                     focus:z-10 focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none sm:text-sm"
-              placeholder="Confirm password"
-            />
-          </div>
+        <div class="space-y-4">
+          <FormInput
+            type="text"
+            name="name"
+            required
+            bind:value={name}
+            placeholder="Full name"
+            theme="dark"
+            rounded="md"
+          />
+          
+          <FormInput
+            type="email"
+            name="email"
+            autocomplete="email"
+            required
+            bind:value={email}
+            placeholder="Email address"
+            theme="dark"
+            rounded="md"
+          />
+          
+          <FormInput
+            type="password"
+            name="password"
+            autocomplete="new-password"
+            required
+            bind:value={password}
+            placeholder="Password"
+            theme="dark"
+            rounded="md"
+          />
+          
+          <FormInput
+            type="password"
+            name="confirm-password"
+            autocomplete="new-password"
+            required
+            bind:value={confirmPassword}
+            placeholder="Confirm password"
+            theme="dark"
+            rounded="md"
+          />
         </div>
 
         {#if error}
-          <div class="text-center text-sm text-red-500">
-            {error}
-          </div>
+          <ErrorMessage 
+            message={error}
+            theme="dark"
+            variant="inline"
+            class="text-center"
+          />
         {/if}
 
         <div class="mt-1 rounded-md border border-gray-700 bg-gray-800 p-3">
@@ -192,23 +175,16 @@
         </div>
 
         <div>
-          <button
+          <Button
             type="submit"
             disabled={isLoading}
-            class="group relative flex w-full justify-center rounded-md border border-transparent bg-indigo-600
-                   px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700
-                   focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none
-                   disabled:cursor-not-allowed disabled:opacity-50"
+            loading={isLoading}
+            variant="primary"
+            fullWidth
+            class="bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500"
           >
-            {#if isLoading}
-              <span class="absolute inset-y-0 left-0 flex items-center pl-3">
-                <LoadingSpinner size="sm" color="white" />
-              </span>
-              Creating account...
-            {:else}
-              Create account
-            {/if}
-          </button>
+            {isLoading ? 'Creating account...' : 'Create account'}
+          </Button>
         </div>
       </form>
     </div>

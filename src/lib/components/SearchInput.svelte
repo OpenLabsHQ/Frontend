@@ -28,9 +28,9 @@
   };
 
   const iconSizeClasses = {
-    sm: 'h-4 w-4 left-3',
-    md: 'h-5 w-5 left-3', 
-    lg: 'h-6 w-6 left-4'
+    sm: 'h-4 w-4',
+    md: 'h-5 w-5', 
+    lg: 'h-6 w-6'
   };
 
   $: baseClasses = [
@@ -78,9 +78,9 @@
 
 <div class="relative {fullWidth ? 'w-full' : ''}">
   <!-- Search Icon -->
-  <div class="pointer-events-none absolute inset-y-0 flex items-center {iconSizeClasses[size]}">
+  <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
     <svg
-      class="text-gray-400"
+      class="text-gray-400 {iconSizeClasses[size]}"
       fill="none"
       stroke="currentColor"
       viewBox="0 0 24 24"

@@ -3,7 +3,8 @@
   import { onMount, onDestroy } from 'svelte'
   import { browser } from '$app/environment'
   import { beforeNavigate } from '$app/navigation'
-  import LoadingSpinner from '$lib/components/LoadingSpinner.svelte'
+  import { LoadingSpinner, Button, PageHeader, StatusBadge, EmptyState } from '$lib/components'
+  import { PROVIDERS, NOTIFICATIONS } from '$lib/constants'
 
   interface Blueprint {
     id: string
@@ -49,22 +50,15 @@
     }
   });
 
-  // Provider icons/colors
-  const providerIcons = {
-    aws: {
-      icon: '🔶', // Orange for AWS
-      color: 'bg-orange-100 text-orange-800 border-orange-200',
-    },
-    azure: {
-      icon: '🔷', // Blue for Azure
-      color: 'bg-blue-100 text-blue-800 border-blue-200',
-    },
+  // Provider display information
+  function getProviderVariant(provider: string): 'warning' | 'primary' {
+    const normalized = provider?.toLowerCase()
+    return normalized === PROVIDERS.AWS ? 'warning' : 'primary'
   }
 
-  // Get provider display information
-  function getProviderInfo(provider: string) {
-    const normalizedProvider = provider?.toLowerCase() || 'default'
-    return providerIcons[normalizedProvider] || providerIcons.default
+  function getProviderIcon(provider: string): string {
+    const normalized = provider?.toLowerCase()
+    return normalized === PROVIDERS.AWS ? '🔶' : '🔷'
   }
 
   // Keep track of any active timers
@@ -91,7 +85,7 @@
   })
 
   // Auto-dismiss notification function
-  function setAutoDismiss(type: 'success' | 'error', duration: number = 3000) {
+  function setAutoDismiss(type: 'success' | 'error', duration: number = NOTIFICATIONS.SUCCESS_DURATION) {
     // Clear any existing timers
     if (autoCloseTimer) {
       clearTimeout(autoCloseTimer)
@@ -149,30 +143,14 @@
 </script>
 
 <style>
-  @keyframes bubble {
-    0% {
-      bottom: 0;
-      opacity: 0;
-    }
-    10% {
-      opacity: 0.8;
-    }
-    80% {
-      opacity: 0.8;
-    }
-    100% {
-      bottom: 100%;
-      opacity: 0;
-    }
-  }
-  
+  /* Custom bubble animation styles */
   .bubble {
     position: absolute;
     width: 8px;
     height: 8px;
     background-color: rgba(255, 255, 255, 0.9);
     border-radius: 50%;
-    animation: bubble 3s infinite ease-out;
+    animation: bubble-float 3s infinite ease-out;
     bottom: 0;
     box-shadow: 0 0 2px rgba(255, 255, 255, 0.5);
   }
@@ -262,24 +240,6 @@
     border-radius: 0 0 36px 36px;
     overflow: hidden;
   }
-  
-  /* For the gear animation */
-  @keyframes rotate {
-    from {
-      transform: rotate(0deg);
-    }
-    to {
-      transform: rotate(360deg);
-    }
-  }
-  
-  .gear {
-    animation: rotate 10s linear infinite;
-  }
-  
-  .gear-reverse {
-    animation: rotate 10s linear infinite reverse;
-  }
 </style>
 
 <div class="flex flex-1 flex-wrap content-start p-4">
@@ -310,13 +270,13 @@
           <div class="flex flex-col items-center">
             <div class="relative h-[100px] flex items-center justify-center">
               <!-- Main large gear -->
-              <svg class="gear h-20 w-20 text-blue-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+              <svg class="animate-gear-rotate h-20 w-20 text-blue-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
                 <path d="M12 15a3 3 0 100-6 3 3 0 000 6z" />
                 <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" />
               </svg>
               
               <!-- Smaller gear (positioned to mesh with main gear) -->
-              <svg class="gear-reverse absolute -right-5 top-1 h-12 w-12 text-blue-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+              <svg class="animate-gear-rotate absolute -right-5 top-1 h-12 w-12 text-blue-300 [animation-direction:reverse]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
                 <path d="M12 15a3 3 0 100-6 3 3 0 000 6z" />
                 <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" />
               </svg>
@@ -330,38 +290,17 @@
       </div>
     </div>
   {/if}
-  <div
-    class="top-10 flex h-15 w-full items-center justify-between border-b border-gray-300 bg-gray-100 p-4"
+  <PageHeader 
+    title="Blueprints"
+    searchPlaceholder="Search Blueprints"
+    bind:searchValue={searchTerm}
   >
-    <div class="flex items-center">
-      <div class="relative">
-        <input
-          type="text"
-          placeholder="Search Blueprints"
-          class="w-52 rounded border border-gray-300 p-2 pl-10 text-base"
-          bind:value={searchTerm}
-        />
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="absolute top-1/2 left-2 h-5 w-5 -translate-y-1/2 transform pl-2 text-gray-500"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-        >
-          <path
-            fill-rule="evenodd"
-            d="M12.9 14.32a8 8 0 111.414-1.414l4.387 4.387a1 1 0 01-1.414 1.414l-4.387-4.387zM8 14a6 6 0 100-12 6 6 0 000 12z"
-            clip-rule="evenodd"
-          />
-        </svg>
-      </div>
-    </div>
-    <a
-      href="/blueprints/create"
-      class="cursor-pointer rounded bg-blue-500 px-4 py-2 text-base text-white hover:bg-blue-700"
-    >
-      Create Blueprint
-    </a>
-  </div>
+    <svelte:fragment slot="actions">
+      <Button href="/blueprints/create" variant="primary" class="w-full sm:w-auto whitespace-nowrap">
+        Create Blueprint
+      </Button>
+    </svelte:fragment>
+  </PageHeader>
 
   <!-- Floating notifications -->
   {#if deploymentSuccess}
@@ -502,39 +441,13 @@
         </div>
       </div>
     {:else if blueprints.length === 0}
-      <div class="w-full p-10 text-center">
-        <div
-          class="rounded-lg border border-blue-200 bg-blue-50 p-8 text-blue-800 shadow-sm"
-        >
-          <div class="mb-4">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="mx-auto mb-2 h-16 w-16 text-blue-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="1"
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
-            <h3 class="mb-2 text-xl font-bold">No blueprints available</h3>
-          </div>
-          <p class="mb-6 text-blue-700">
-            There are no blueprints available at the moment. Create a new
-            blueprint to get started!
-          </p>
-          <a
-            href="/blueprints/create"
-            class="rounded-md bg-blue-600 px-6 py-3 font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
-          >
-            Create new blueprint
-          </a>
-        </div>
-      </div>
+      <EmptyState
+        title="No blueprints available"
+        description="There are no blueprints available at the moment. Create a new blueprint to get started!"
+        iconType="blueprint"
+        actionLabel="Create new blueprint"
+        on:action={() => window.location.href = '/blueprints/create'}
+      />
     {:else}
       {#each blueprints.filter((blueprint) => blueprint.name
           .toLowerCase()
@@ -551,12 +464,13 @@
               >
                 {blueprint.name}
               </h2>
-              <span
-                class={`ml-1 rounded-full px-2 py-1 text-xs whitespace-nowrap ${getProviderInfo(blueprint.provider).color}`}
+              <StatusBadge 
+                variant={getProviderVariant(blueprint.provider)}
+                size="sm"
               >
-                {getProviderInfo(blueprint.provider).icon}
+                {getProviderIcon(blueprint.provider)}
                 {blueprint.provider}
-              </span>
+              </StatusBadge>
             </div>
 
             <!-- Description placeholder -->
@@ -568,42 +482,41 @@
 
           <div>
             <!-- Features -->
-            <div class="mb-4 flex space-x-2 text-xs">
-              <span
-                class={`rounded px-2 py-1 ${blueprint.vnc ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-400'}`}
+            <div class="mb-4 flex space-x-2">
+              <StatusBadge 
+                variant={blueprint.vnc ? 'success' : 'gray'}
+                size="sm"
+                rounded="normal"
               >
                 VNC {blueprint.vnc ? '✓' : '✗'}
-              </span>
-              <span
-                class={`rounded px-2 py-1 ${blueprint.vpn ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-400'}`}
+              </StatusBadge>
+              <StatusBadge 
+                variant={blueprint.vpn ? 'success' : 'gray'}
+                size="sm"
+                rounded="normal"
               >
                 VPN {blueprint.vpn ? '✓' : '✗'}
-              </span>
+              </StatusBadge>
             </div>
 
             <!-- Action buttons -->
             <div class="mt-1 flex justify-between">
-              <a
+              <Button 
                 href={`/blueprints/${blueprint.id}`}
-                class="rounded-md bg-blue-500 px-4 py-2 text-center text-sm font-bold text-white hover:bg-blue-700"
+                variant="primary"
+                size="sm"
               >
                 View Details
-              </a>
-              <button
-                class="flex items-center rounded-md bg-green-500 px-4 py-2 text-sm font-bold text-white hover:bg-green-700 {deployingBlueprintId ===
-                blueprint.id
-                  ? 'cursor-not-allowed opacity-75'
-                  : ''}"
-                on:click={() => deployBlueprint(blueprint.id, blueprint.name)}
+              </Button>
+              <Button 
+                variant="success"
+                size="sm"
+                loading={deployingBlueprintId === blueprint.id}
                 disabled={deployingBlueprintId === blueprint.id}
+                on:click={() => deployBlueprint(blueprint.id, blueprint.name)}
               >
-                {#if deployingBlueprintId === blueprint.id}
-                  <LoadingSpinner size="sm" color="white" />
-                  Deploying...
-                {:else}
-                  Deploy
-                {/if}
-              </button>
+                {deployingBlueprintId === blueprint.id ? 'Deploying...' : 'Deploy'}
+              </Button>
             </div>
           </div>
         </div>
