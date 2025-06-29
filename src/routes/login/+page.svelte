@@ -3,7 +3,7 @@
   import { goto } from '$app/navigation'
   import { authApi } from '$lib/api'
   import { auth } from '$lib/stores/auth'
-  import AuthGuard from '$lib/components/AuthGuard.svelte'
+  import { AuthGuard, FormInput, Button, ErrorMessage } from '$lib/components'
 
   let email = ''
   let password = ''
@@ -81,99 +81,49 @@
       </div>
 
       <form class="mt-8 space-y-6" on:submit|preventDefault={handleLogin}>
-        <div class="-space-y-px rounded-md shadow-sm">
-          <div>
-            <label for="email-address" class="sr-only">Email address</label>
-            <input
-              id="email-address"
-              name="email"
-              type="email"
-              autocomplete="email"
-              required
-              bind:value={email}
-              class="relative block w-full appearance-none rounded-none rounded-t-md border border-gray-700 bg-gray-800
-                     px-3 py-2 text-white placeholder-gray-500
-                     focus:z-10 focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none sm:text-sm"
-              placeholder="Email address"
-            />
-          </div>
-          <div>
-            <label for="password" class="sr-only">Password</label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              autocomplete="current-password"
-              required
-              bind:value={password}
-              class="relative block w-full appearance-none rounded-none rounded-b-md border border-gray-700 bg-gray-800
-                     px-3 py-2 text-white placeholder-gray-500
-                     focus:z-10 focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none sm:text-sm"
-              placeholder="Password"
-            />
-          </div>
+        <div class="space-y-4">
+          <FormInput
+            type="email"
+            name="email"
+            autocomplete="email"
+            required
+            bind:value={email}
+            placeholder="Email address"
+            theme="dark"
+            rounded="md"
+          />
+          
+          <FormInput
+            type="password"
+            name="password"
+            autocomplete="current-password"
+            required
+            bind:value={password}
+            placeholder="Password"
+            theme="dark"
+            rounded="md"
+          />
         </div>
 
         {#if error}
-          <div
-            class="mb-4 rounded-md border border-red-500 bg-red-900/50 px-4 py-3 text-sm text-red-300"
-          >
-            <div class="flex items-center">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="mr-2 h-5 w-5 text-red-500"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fill-rule="evenodd"
-                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                  clip-rule="evenodd"
-                />
-              </svg>
-              {error}
-            </div>
-          </div>
+          <ErrorMessage 
+            message={error}
+            theme="dark"
+            variant="banner"
+          />
         {/if}
 
         <div>
-          <button
+          <Button
             type="submit"
             disabled={isLoading}
-            class="group relative flex w-full justify-center rounded-md border border-transparent bg-indigo-600
-                   px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700
-                   focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none
-                   disabled:cursor-not-allowed disabled:opacity-50"
+            loading={isLoading}
+            variant="primary"
+            fullWidth
+            class="bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500"
           >
-            {#if isLoading}
-              <span class="absolute inset-y-0 left-0 flex items-center pl-3">
-                <!-- Loading spinner -->
-                <svg
-                  class="h-5 w-5 animate-spin text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    class="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    stroke-width="4"
-                  ></circle>
-                  <path
-                    class="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-              </span>
-              Signing in...
-            {:else}
-              Sign in
-            {/if}
-          </button>
+            {isLoading ? 'Signing in...' : 'Sign in'}
+          </Button>
         </div>
       </form>
     </div>

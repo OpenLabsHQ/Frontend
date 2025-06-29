@@ -92,12 +92,10 @@
 
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte'
-  import { page } from '$app/stores'
   import { goto } from '$app/navigation'
   import { rangesApi } from '$lib/api'
   import NetworkGraph from '$lib/components/NetworkGraph.svelte'
   import Sidebar from '$lib/components/Sidebar.svelte'
-  import AuthGuard from '$lib/components/AuthGuard.svelte'
   import LoadingSpinner from '$lib/components/LoadingSpinner.svelte'
   import { auth } from '$lib/stores/auth'
   import { browser } from '$app/environment'
@@ -116,8 +114,6 @@
   let activeTab = 'overview'
   let showSSHKey = false
   let copiedSSH = false
-  let copiedIP = false
-  let copiedIPAddress = ''
   
   // Placeholder README if none exists
   let readmeHtml = ''
@@ -145,7 +141,6 @@ If you encounter any issues, please contact support.`
   // Delete confirmation state
   let showDeleteConfirm = false
   let isDeletingRange = false
-  let deleteError = ''
 
   // Notification state
   let successMessage = ''
