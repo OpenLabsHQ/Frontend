@@ -1,7 +1,6 @@
 <script lang="ts">
   import { LoadingSpinner, Button, PageHeader, StatusBadge, EmptyState } from '$lib/components'
   
-  // Some things I think could be useful.
   // We need a description at the very least.
   interface Range {
     id: string
